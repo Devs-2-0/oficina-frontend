@@ -1,0 +1,134 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Radius */
+    --radius: 0.5rem;
+
+    /* Base Colors (Light Mode) */
+    --background: #ffffff;
+    --foreground: #0f0f0f;
+    --card: #ffffff;
+    --card-foreground: #0f0f0f;
+    --popover: #ffffff;
+    --popover-foreground: #0f0f0f;
+
+    /* Brand Colors */
+    --primary: #9f2a3f;
+    --primary-foreground: #f2f2f2;
+
+    --secondary: #f1f1f8;
+    --secondary-foreground: #1a1a1a;
+
+    --muted: #f1f1f8;
+    --muted-foreground: #787887;
+
+    --accent: #f1f1f8;
+    --accent-foreground: #1a1a1a;
+
+    --destructive: #f04438;
+    --destructive-foreground: #fafafa;
+
+    --border: #e5e5f0;
+    --input: #e5e5f0;
+    --ring: #9f2a3f;
+
+    /* Sidebar Colors (Light Mode) */
+    --sidebar-background: #9f2a3f;
+    --sidebar-foreground: #f2f2f2;
+    --sidebar-border: #611b27;
+    --sidebar-accent: #b43a52;
+    --sidebar-accent-foreground: #f2f2f2;
+  }
+
+  .dark {
+    /* Radius */
+    --radius: 0.5rem;
+  
+    /* Base Colors (Dark Mode) */
+    --background: #000000;
+    --foreground: #ffffff;
+    --card: #0a0a0a;
+    --card-foreground: #ffffff;
+    --popover: #0a0a0a;
+    --popover-foreground: #ffffff;
+  
+    /* Brand Colors */
+    --primary: #9f2a3f;
+    --primary-foreground: #ffffff;
+  
+    --secondary: #1a1a1a;
+    --secondary-foreground: #ffffff;
+  
+    --muted: #1a1a1a;
+    --muted-foreground: #b3b3b3;
+  
+    --accent: #1a1a1a;
+    --accent-foreground: #ffffff;
+  
+    --destructive: #912019;
+    --destructive-foreground: #ffffff;
+  
+    --border: #2a2a2a;
+    --input: #2a2a2a;
+    --ring: #9f2a3f;
+  
+    /* Sidebar Colors (Dark Mode) */
+    --sidebar-background: #7c1f2f; /* vermelho mais escuro */
+    --sidebar-foreground: #ffffff;
+    --sidebar-border: #5a1824;
+    --sidebar-accent: #99263a;
+    --sidebar-accent-foreground: #ffffff;
+  }
+  * {
+    border-color: var(--border);
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: Arial, Helvetica, sans-serif;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .bg-sidebar {
+    background-color: var(--sidebar-background);
+    color: var(--sidebar-foreground);
+  }
+
+  .bg-background {
+    background-color: var(--background);
+    color: var(--foreground);
+  }
+
+  .text-sidebar-foreground {
+    color: var(--sidebar-foreground);
+  }
+
+  .border-sidebar-border {
+    border-color: var(--sidebar-border);
+  }
+
+  .bg-sidebar-accent {
+    background-color: var(--sidebar-accent);
+  }
+
+  .text-sidebar-accent-foreground {
+    color: var(--sidebar-accent-foreground);
+  }
+
+  .hover\:bg-sidebar-accent:hover {
+    background-color: var(--sidebar-accent);
+  }
+
+  .hover\:text-sidebar-accent-foreground:hover {
+    color: var(--sidebar-accent-foreground);
+  }
+}
