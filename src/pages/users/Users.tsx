@@ -11,6 +11,7 @@ import { Edit, MoreHorizontal, Search, Trash2, UserPlus } from "lucide-react"
 import { useState } from "react"
 import { useGetUsers } from "./hooks/use-get-users"
 import { UserModal } from "./components/user-modal"
+import { useDeleteUserMutation } from "./hooks/use-delete-user"
 
 export const Users = () => {
   const { toast } = useToast()
@@ -25,6 +26,8 @@ export const Users = () => {
   const [selectedUserId, setSelectedUserId] = useState<string | undefined>(undefined)
 
   const users = useGetUsers()
+
+  const deleteUser = useDeleteUserMutation()
 
   // Filter users
   const filteredUsers = users.data.filter(
@@ -271,13 +274,8 @@ export const Users = () => {
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               className="text-destructive"
-                              onClick={() =>
-                                toast({
-                                  title: "Excluir usuário",
-                                  description: `Usuário ${user.nome} excluído com sucesso.`,
-                                  variant: "destructive",
-                                  duration: 3000,
-                                })
+                              onClick={async () =>
+                                await deleteUser.mutateAsync(user.id)
                               }
                             >
                               <Trash2 className="mr-2 h-4 w-4" />
