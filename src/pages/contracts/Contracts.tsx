@@ -6,133 +6,45 @@ import { Input } from "@/components/ui/input"
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useToast } from "@/hooks/use-toast"
-import { Download, Edit, MoreHorizontal, Plus, Search, Trash2 } from "lucide-react"
+import { Download, Edit, MoreHorizontal, Plus, Search, Trash2, Upload } from "lucide-react"
 import { useState } from "react"
-import { useSearchParams } from "react-router-dom"
-
-const contracts = [
-  {
-    id: "CT-001",
-    prestador: "João Silva",
-    competencia: "Desenvolvimento Web",
-    criador: "Maria Oliveira",
-    criadoEm: "2023-03-15T10:30:00Z",
-    ultimaAtualizacao: "2023-04-01T14:45:00Z",
-  },
-  {
-    id: "CT-002",
-    prestador: "Ana Santos",
-    competencia: "Design Gráfico",
-    criador: "Carlos Pereira",
-    criadoEm: "2023-03-18T09:15:00Z",
-    ultimaAtualizacao: "2023-03-25T11:20:00Z",
-  },
-  {
-    id: "CT-003",
-    prestador: "Pedro Costa",
-    competencia: "Consultoria Financeira",
-    criador: "Fernanda Lima",
-    criadoEm: "2023-03-20T13:45:00Z",
-    ultimaAtualizacao: "2023-04-02T16:30:00Z",
-  },
-  {
-    id: "CT-004",
-    prestador: "Mariana Alves",
-    competencia: "Marketing Digital",
-    criador: "Roberto Souza",
-    criadoEm: "2023-03-22T15:00:00Z",
-    ultimaAtualizacao: "2023-03-30T10:15:00Z",
-  },
-  {
-    id: "CT-005",
-    prestador: "Lucas Ferreira",
-    competencia: "Suporte Técnico",
-    criador: "Juliana Martins",
-    criadoEm: "2023-03-25T11:30:00Z",
-    ultimaAtualizacao: "2023-04-03T09:45:00Z",
-  },
-  {
-    id: "CT-006",
-    prestador: "Camila Rodrigues",
-    competencia: "Análise de Dados",
-    criador: "André Gomes",
-    criadoEm: "2023-03-28T14:15:00Z",
-    ultimaAtualizacao: "2023-04-05T13:20:00Z",
-  },
-  {
-    id: "CT-007",
-    prestador: "Rafael Mendes",
-    competencia: "Recursos Humanos",
-    criador: "Patrícia Nunes",
-    criadoEm: "2023-03-30T10:45:00Z",
-    ultimaAtualizacao: "2023-04-06T15:30:00Z",
-  },
-  {
-    id: "CT-008",
-    prestador: "Isabela Castro",
-    competencia: "Contabilidade",
-    criador: "Marcelo Dias",
-    criadoEm: "2023-04-01T09:30:00Z",
-    ultimaAtualizacao: "2023-04-07T11:15:00Z",
-  },
-  {
-    id: "CT-009",
-    prestador: "Gabriel Oliveira",
-    competencia: "Desenvolvimento Mobile",
-    criador: "Carla Sousa",
-    criadoEm: "2023-04-02T13:45:00Z",
-    ultimaAtualizacao: "2023-04-08T16:30:00Z",
-  },
-  {
-    id: "CT-010",
-    prestador: "Juliana Lima",
-    competencia: "UX/UI Design",
-    criador: "Ricardo Almeida",
-    criadoEm: "2023-04-03T10:15:00Z",
-    ultimaAtualizacao: "2023-04-09T14:45:00Z",
-  },
-  {
-    id: "CT-011",
-    prestador: "Marcos Santos",
-    competencia: "Segurança da Informação",
-    criador: "Fernanda Costa",
-    criadoEm: "2023-04-04T09:30:00Z",
-    ultimaAtualizacao: "2023-04-10T11:20:00Z",
-  },
-  {
-    id: "CT-012",
-    prestador: "Luciana Ferreira",
-    competencia: "Gestão de Projetos",
-    criador: "Paulo Mendes",
-    criadoEm: "2023-04-05T14:00:00Z",
-    ultimaAtualizacao: "2023-04-11T15:45:00Z",
-  },
-]
+import { ContractModal } from "./components/contract-modal"
+import { useGetContratos } from "./hooks/use-get-contratos"
+import { useDeleteContrato } from "./hooks/use-delete-contrato"
+import { useUpdateContrato } from "./hooks/use-update-contrato"
+import { useDownloadArquivo } from "./hooks/use-download-arquivo"
+import { Loader2 } from "lucide-react"
+import { AxiosError } from "axios"
 
 export const Contracts = () => {
-  const searchParams = useSearchParams()
   const { toast } = useToast()
+  const { data: contratos = [], isLoading } = useGetContratos()
+  const deleteContrato = useDeleteContrato()
+  const updateContrato = useUpdateContrato()
+  const downloadArquivo = useDownloadArquivo()
 
-  // Use regular state instead of nuqs
   const [search, setSearch] = useState("")
   const [page, setPage] = useState(1)
-  const perPage = 10 // Fixed at 10 items per page
+  const perPage = 10
   const [sortField, setSortField] = useState("id")
   const [sortDirection, setSortDirection] = useState("asc")
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedContratoId, setSelectedContratoId] = useState<string>()
 
   // Filter and sort contracts
-  const filteredContracts = contracts.filter(
+  const filteredContracts = contratos.filter(
     (contract) =>
-      contract.id.toLowerCase().includes(search.toLowerCase()) ||
-      contract.prestador.toLowerCase().includes(search.toLowerCase()) ||
-      contract.competencia.toLowerCase().includes(search.toLowerCase()) ||
-      contract.criador.toLowerCase().includes(search.toLowerCase()),
+      String(contract.id).toLowerCase().includes(search.toLowerCase()) ||
+      (contract.prestador?.nome || '').toLowerCase().includes(search.toLowerCase()) ||
+      (contract.competencia || '').toLowerCase().includes(search.toLowerCase()) ||
+      (contract.criador?.nome || '').toLowerCase().includes(search.toLowerCase()),
   )
 
   const sortedContracts = [...filteredContracts].sort((a, b) => {
     const fieldA = a[sortField as keyof typeof a]
     const fieldB = b[sortField as keyof typeof b]
 
+    if (!fieldA || !fieldB) return 0
     if (fieldA < fieldB) return sortDirection === "asc" ? -1 : 1
     if (fieldA > fieldB) return sortDirection === "asc" ? 1 : -1
     return 0
@@ -156,16 +68,83 @@ export const Contracts = () => {
     setPage(newPage)
   }
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("pt-BR")
+  const handleOpenCreateModal = () => {
+    setSelectedContratoId(undefined)
+    setIsModalOpen(true)
   }
 
-  const downloadContract = (id: string) => {
-    toast({
-      title: "Contrato baixado",
-      description: `O contrato ${id} foi baixado com sucesso.`,
-      duration: 3000,
-    })
+  const handleOpenEditModal = (contratoId: string) => {
+    setSelectedContratoId(contratoId)
+    setIsModalOpen(true)
+  }
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+    setSelectedContratoId(undefined)
+  }
+
+  const handleDeleteContrato = async (contratoId: string) => {
+    try {
+      await deleteContrato.mutateAsync(contratoId)
+    } catch {
+      // Error is handled by the mutation
+    }
+  }
+
+  const handleFileUpload = async (contratoId: string, file: File) => {
+    try {
+      const reader = new FileReader()
+      reader.onload = async (e) => {
+        const base64String = e.target?.result?.toString().split(',')[1]
+        if (!base64String) {
+          toast({
+            title: "Erro ao processar arquivo",
+            description: "Não foi possível processar o arquivo selecionado.",
+            variant: "destructive",
+          })
+          return
+        }
+
+        try {
+          await updateContrato.mutateAsync({
+            id: contratoId,
+            arquivo: base64String,
+          })
+          toast({
+            title: "Arquivo anexado",
+            description: "O arquivo foi anexado ao contrato com sucesso.",
+          })
+        } catch (error) {
+          const axiosError = error as AxiosError<{ message: string }>
+          toast({
+            title: "Erro ao anexar arquivo",
+            description: axiosError.response?.data?.message || "Ocorreu um erro ao tentar anexar o arquivo ao contrato.",
+            variant: "destructive",
+          })
+        }
+      }
+      reader.readAsDataURL(file)
+    } catch (error) {
+      const fileError = error as Error
+      toast({
+        title: "Erro ao processar arquivo",
+        description: fileError.message || "Ocorreu um erro ao tentar processar o arquivo.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleFileSelect = (contratoId: string) => {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = '.pdf,.doc,.docx'
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0]
+      if (file) {
+        handleFileUpload(contratoId, file)
+      }
+    }
+    input.click()
   }
 
   // Generate pagination items
@@ -230,6 +209,12 @@ export const Contracts = () => {
     <div className="container py-6 space-y-6">
       <PageHeader title="Contratos" description="Gerencie os contratos dos prestadores de serviço" />
 
+      <ContractModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        contratoId={selectedContratoId}
+      />
+
       <Card>
         <CardContent className="p-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -246,21 +231,10 @@ export const Contracts = () => {
               </Button>
             </div>
 
-            {true && (
-              <Button
-                size="sm"
-                onClick={() =>
-                  toast({
-                    title: "Novo contrato",
-                    description: "Funcionalidade em desenvolvimento.",
-                    duration: 3000,
-                  })
-                }
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Novo Contrato
-              </Button>
-            )}
+            <Button size="sm" onClick={handleOpenCreateModal}>
+              <Plus className="mr-2 h-4 w-4" />
+              Novo Contrato
+            </Button>
           </div>
 
           <div className="mt-6 rounded-md border">
@@ -293,20 +267,20 @@ export const Contracts = () => {
                       <span className="ml-1">{sortField === "criador" && (sortDirection === "asc" ? "↑" : "↓")}</span>
                     </div>
                   </TableHead>
-                  <TableHead className="cursor-pointer hidden md:table-cell" onClick={() => handleSort("criadoEm")}>
+                  <TableHead className="cursor-pointer hidden md:table-cell" onClick={() => handleSort("data_criacao")}>
                     <div className="flex items-center">
                       Criado em
-                      <span className="ml-1">{sortField === "criadoEm" && (sortDirection === "asc" ? "↑" : "↓")}</span>
+                      <span className="ml-1">{sortField === "data_criacao" && (sortDirection === "asc" ? "↑" : "↓")}</span>
                     </div>
                   </TableHead>
                   <TableHead
                     className="cursor-pointer hidden lg:table-cell"
-                    onClick={() => handleSort("ultimaAtualizacao")}
+                    onClick={() => handleSort("data_ultima_atualizacao")}
                   >
                     <div className="flex items-center">
                       Última atualização
                       <span className="ml-1">
-                        {sortField === "ultimaAtualizacao" && (sortDirection === "asc" ? "↑" : "↓")}
+                        {sortField === "data_ultima_atualizacao" && (sortDirection === "asc" ? "↑" : "↓")}
                       </span>
                     </div>
                   </TableHead>
@@ -314,7 +288,13 @@ export const Contracts = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paginatedContracts.length === 0 ? (
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="h-24 text-center">
+                      Carregando contratos...
+                    </TableCell>
+                  </TableRow>
+                ) : paginatedContracts.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={7} className="h-24 text-center">
                       Nenhum contrato encontrado.
@@ -324,11 +304,15 @@ export const Contracts = () => {
                   paginatedContracts.map((contract) => (
                     <TableRow key={contract.id}>
                       <TableCell className="font-medium">{contract.id}</TableCell>
-                      <TableCell>{contract.prestador}</TableCell>
-                      <TableCell>{contract.competencia}</TableCell>
-                      <TableCell className="hidden md:table-cell">{contract.criador}</TableCell>
-                      <TableCell className="hidden md:table-cell">{formatDate(contract.criadoEm)}</TableCell>
-                      <TableCell className="hidden lg:table-cell">{formatDate(contract.ultimaAtualizacao)}</TableCell>
+                      <TableCell>{contract.prestador?.nome || 'Não definido'}</TableCell>
+                      <TableCell>{contract.competencia || 'Não definido'}</TableCell>
+                      <TableCell className="hidden md:table-cell">{contract.criador?.nome || 'Não definido'}</TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        {contract.data_criacao ? new Date(contract.data_criacao).toLocaleDateString("pt-BR") : 'Não definido'}
+                      </TableCell>
+                      <TableCell className="hidden lg:table-cell">
+                        {contract.data_ultima_atualizacao ? new Date(contract.data_ultima_atualizacao).toLocaleDateString("pt-BR") : 'Não definido'}
+                      </TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -338,54 +322,35 @@ export const Contracts = () => {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => downloadContract(contract.id)}>
-                              <Download className="mr-2 h-4 w-4" />
-                              Baixar contrato
-                            </DropdownMenuItem>
-                            {true && (
-                              <>
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    toast({
-                                      title: "Editar contrato",
-                                      description: `Editando contrato ${contract.id}`,
-                                      duration: 3000,
-                                    })
-                                  }
-                                >
-                                  <Edit className="mr-2 h-4 w-4" />
-                                  Editar contrato
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  className="text-destructive"
-                                  onClick={() =>
-                                    toast({
-                                      title: "Excluir contrato",
-                                      description: `Contrato ${contract.id} excluído com sucesso.`,
-                                      variant: "destructive",
-                                      duration: 3000,
-                                    })
-                                  }
-                                >
-                                  <Trash2 className="mr-2 h-4 w-4" />
-                                  Excluir contrato
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  className="text-destructive"
-                                  onClick={() =>
-                                    toast({
-                                      title: "Excluir prestador",
-                                      description: `Prestador ${contract.prestador} excluído com sucesso.`,
-                                      variant: "destructive",
-                                      duration: 3000,
-                                    })
-                                  }
-                                >
-                                  <Trash2 className="mr-2 h-4 w-4" />
-                                  Excluir prestador
-                                </DropdownMenuItem>
-                              </>
+                            {contract.arquivo ? (
+                              <DropdownMenuItem
+                                onClick={() => downloadArquivo.mutate(contract.id)}
+                                disabled={downloadArquivo.isPending}
+                              >
+                                {downloadArquivo.isPending ? (
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                ) : (
+                                  <Download className="mr-2 h-4 w-4" />
+                                )}
+                                {downloadArquivo.isPending ? 'Baixando...' : 'Baixar contrato'}
+                              </DropdownMenuItem>
+                            ) : (
+                              <DropdownMenuItem onClick={() => handleFileSelect(contract.id)}>
+                                <Upload className="mr-2 h-4 w-4" />
+                                Anexar contrato
+                              </DropdownMenuItem>
                             )}
+                            <DropdownMenuItem onClick={() => handleOpenEditModal(contract.id)}>
+                              <Edit className="mr-2 h-4 w-4" />
+                              Editar contrato
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="text-destructive"
+                              onClick={() => handleDeleteContrato(contract.id)}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Excluir contrato
+                            </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
