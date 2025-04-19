@@ -5,7 +5,7 @@ import Login from './pages/login/Login'
 import { Feed } from './pages/feed/Feed'
 import DashboardLayout from './layout/default'
 import { Contracts } from './pages/contracts/Contracts'
-import { Financial } from './pages/financial/Financial'
+
 import { Vacation } from './pages/vacation/Vacation'
 import { Users } from './pages/users/Users'
 import { Providers } from './pages/Providers'

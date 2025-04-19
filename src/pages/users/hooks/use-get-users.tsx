@@ -1,6 +1,5 @@
 import { getUsers } from '@/http/services/users/get-users';
 import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
 
 
 export const useGetUsers = () => {
@@ -10,6 +9,7 @@ export const useGetUsers = () => {
 
   })
 
+  console.log(usersQuery.data)
   return {
     ...usersQuery, data: usersQuery.data?.data || [],
   }

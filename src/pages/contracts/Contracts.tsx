@@ -11,10 +11,11 @@ import { useState } from "react"
 import { ContractModal } from "./components/contract-modal"
 import { useGetContratos } from "./hooks/use-get-contratos"
 import { useDeleteContrato } from "./hooks/use-delete-contrato"
-import { useUpdateContrato } from "./hooks/use-update-contrato"
+
 import { useDownloadArquivo } from "./hooks/use-download-arquivo"
 import { Loader2 } from "lucide-react"
 import { AxiosError } from "axios"
+import { useUpdateContrato } from "./hooks/use-update-contrato"
 
 export const Contracts = () => {
   const { toast } = useToast()

@@ -27,15 +27,17 @@ export const Users = () => {
 
   const users = useGetUsers()
 
+  console.log(users.data)
+
   const deleteUser = useDeleteUserMutation()
 
   // Filter users
   const filteredUsers = users.data.filter(
     (user) =>
-      user.nome.toLowerCase().includes(search.toLowerCase()) ||
-      user.matricula.toLowerCase().includes(search.toLowerCase()) ||
-      user.email.toLowerCase().includes(search.toLowerCase()) ||
-      user.nome_usuario.toLowerCase().includes(search.toLowerCase()),
+      user.nome?.toLowerCase().includes(search.toLowerCase()) ||
+      user.matricula?.toLowerCase().includes(search.toLowerCase()) ||
+      user.email?.toLowerCase().includes(search.toLowerCase()) ||
+      user.nome_usuario?.toLowerCase().includes(search.toLowerCase()),
   )
 
   // Sort users
