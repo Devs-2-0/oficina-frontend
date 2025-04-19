@@ -5,15 +5,17 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { usePostLoginMutation } from "../hooks/use-post-login"
 
 export default function LoginForm() {
   const navigate = useNavigate()
-  const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({
     username: "",
     password: "",
   })
+
+  const login = usePostLoginMutation()
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -22,13 +24,13 @@ export default function LoginForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
 
-    // Simula o login - substitua pela lógica real
-    setTimeout(() => {
-      setLoading(false)
-      navigate("/feed")
-    }, 1000)
+    await login.mutateAsync({
+      nomeDeUsuario: formData.username,
+      senha: formData.password,
+    })
+
+
   }
 
   const togglePasswordVisibility = () => {
@@ -100,8 +102,8 @@ export default function LoginForm() {
               </Button>
             </div>
           </div>
-          <Button type="submit" className="w-full bg-primary" disabled={loading}>
-            {loading ? "Entrando..." : "Entrar"}
+          <Button type="submit" className="w-full bg-primary" disabled={login.isPending}>
+            {login.isPending ? "Entrando..." : "Entrar"}
           </Button>
         </form>
       </CardContent>
