@@ -6,6 +6,7 @@ import {
   ChevronLeft,
   ChevronRight,
   FileText,
+  Group,
   Home,
   LogOut,
   Menu,
@@ -43,6 +44,7 @@ const navItems: NavItem[] = [
   { title: "Férias", href: "/ferias", icon: Calendar },
   { title: "Usuários", href: "/usuarios", icon: Users },
   { title: "Prestadores", href: "/prestadores", icon: BarChart },
+  { title: "Grupos", href: "/grupos", icon: Group },
 ]
 
 export function DashboardSidebar() {

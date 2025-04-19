@@ -10,6 +10,7 @@ import { Vacation } from './pages/Vacation'
 import { Users } from './pages/users/Users'
 import { Providers } from './pages/Providers'
 import { ForgotPassword } from './pages/ForgotPassword'
+import { Groups } from './pages/groups'
 // import { ProtectedRoute } from './components/ProtectedRoute' // ajuste se necessário
 // import { ErrorBoundary } from './pages/_layouts/pages/error' // opcional
 
@@ -48,6 +49,10 @@ const protectedRoutes: RouteObject[] = [
   {
     path: '/prestadores',
     element: <Providers />,
+  },
+  {
+    path: '/grupos',
+    element: <Groups />,
   }
 ]
 
