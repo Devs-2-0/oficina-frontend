@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { getUserById } from "@/http/services/users/get-user-by-id";
+import { useGetGrupos } from '../hooks/use-get-grupos';
 
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -13,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { usePostUserMutation } from "../hooks/use-post-user";
 import { useUpdateUserMutation } from "../hooks/use-patch-user";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const userSchema = z.object({
   matricula: z.string().nonempty("Matrícula é obrigatória"),
@@ -41,6 +43,7 @@ export const UserModal = ({ isOpen, onClose, userId }: UserModalProps) => {
   const isEditMode = !!userId;
   const postUser = usePostUserMutation();
   const updateUser = useUpdateUserMutation();
+  const { data: grupos = [] } = useGetGrupos();
 
   const { data: userData, isLoading: isLoadingUser } = useQuery({
     queryKey: ['user', userId],
@@ -268,23 +271,31 @@ export const UserModal = ({ isOpen, onClose, userId }: UserModalProps) => {
                   />
                   {errors.uf && <p className="text-sm text-red-500">{errors.uf.message}</p>}
                 </div>
-                {/* <div className="space-y-2">
+                <div className="space-y-2">
                   <Label htmlFor="grupo">Grupo</Label>
                   <Controller
                     name="grupo"
                     control={control}
-                    render={({ field: { value, onChange, ...field } }) => (
-                      <Input
-                        {...field}
-                        type="number"
-                        placeholder="Grupo"
-                        value={value.toString()}
-                        onChange={(e) => onChange(Number(e.target.value))}
-                      />
+                    render={({ field }) => (
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione um grupo" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {grupos.map((grupo) => (
+                            <SelectItem key={grupo.id} value={grupo.id.toString()}>
+                              {grupo.nome}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     )}
                   />
                   {errors.grupo && <p className="text-sm text-red-500">{errors.grupo.message}</p>}
-                </div> */}
+                </div>
               </div>
             </div>
             <DialogFooter>
