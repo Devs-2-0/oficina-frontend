@@ -7,7 +7,7 @@ import DashboardLayout from './layout/default'
 import { Contracts } from './pages/Contracts'
 import { Financial } from './pages/Financial'
 import { Vacation } from './pages/Vacation'
-import { Users } from './pages/Users'
+import { Users } from './pages/users/Users'
 import { Providers } from './pages/Providers'
 import { ForgotPassword } from './pages/ForgotPassword'
 // import { ProtectedRoute } from './components/ProtectedRoute' // ajuste se necessário

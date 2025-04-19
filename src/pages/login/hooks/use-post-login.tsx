@@ -15,9 +15,10 @@ export const usePostLoginMutation = () => {
       onSuccess: (data) => {
         toast({ variant: 'default', title: 'Login realizado com sucesso!', description: 'Bem-vindo de volta!' });
         navigate('/feed');
+        localStorage.setItem('tokenOficina', data.data.token);
       },
       onError: (error) => {
-        const errorMessage = error.response?.data?.message || error.message || 'Erro desconhecido';
+        const errorMessage = error.message || 'Erro desconhecido';
         toast({ variant: 'destructive', title: 'Erro ao realizar login', description: errorMessage });
         console.error('Erro ao realizar login:', errorMessage);
       },
