@@ -12,14 +12,7 @@ export const Providers = () => {
           <CardDescription>Esta seção está em desenvolvimento e terá mais funcionalidades em breve.</CardDescription>
         </CardHeader>
         <CardContent>
-          <p>O módulo de prestadores completo incluirá:</p>
-          <ul className="list-disc pl-5 mt-2 space-y-1">
-            <li>Cadastro de prestadores</li>
-            <li>Histórico de serviços</li>
-            <li>Avaliação de desempenho</li>
-            <li>Documentação e certificações</li>
-            <li>Relatórios de atividade</li>
-          </ul>
+
         </CardContent>
       </Card>
     </div>
