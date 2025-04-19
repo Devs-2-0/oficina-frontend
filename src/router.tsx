@@ -8,7 +8,7 @@ import { Contracts } from './pages/contracts/Contracts'
 
 import { Vacation } from './pages/vacation/Vacation'
 import { Users } from './pages/users/Users'
-import { Providers } from './pages/Providers'
+import { Providers } from './pages/providers/Providers'
 import { ForgotPassword } from './pages/ForgotPassword'
 import { Groups } from './pages/groups'
 import { Financeiro } from './pages/financeiro/Financeiro'
