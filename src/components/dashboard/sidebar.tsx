@@ -29,6 +29,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
+import { useNaoVisualizadas } from "@/pages/feed/hooks/use-nao-visualizadas"
 
 interface NavItem {
   title: string
@@ -37,21 +38,26 @@ interface NavItem {
   badge?: number
 }
 
-const navItems: NavItem[] = [
-  { title: "Feed", href: "/feed", icon: Home, badge: 3 },
-  { title: "Contratos", href: "/contratos", icon: FileText },
-  { title: "Financeiro", href: "/financeiro", icon: Wallet },
-  { title: "Férias", href: "/ferias", icon: Calendar },
-  { title: "Usuários", href: "/usuarios", icon: Users },
-  { title: "Prestadores", href: "/prestadores", icon: BarChart },
-  { title: "Grupos", href: "/grupos", icon: Group },
-]
+
 
 export function DashboardSidebar() {
   const location = useLocation()
   const [isOpen, setIsOpen] = useState(false)
   const [collapsed, setCollapsed] = useState(false)
   const { toast } = useToast()
+
+
+  const { quantidadeNaoVisualizadas } = useNaoVisualizadas()
+
+  const navItems: NavItem[] = [
+    { title: "Feed", href: "/feed", icon: Home, badge: quantidadeNaoVisualizadas > 0 ? quantidadeNaoVisualizadas : undefined },
+    { title: "Contratos", href: "/contratos", icon: FileText },
+    { title: "Financeiro", href: "/financeiro", icon: Wallet },
+    { title: "Férias", href: "/ferias", icon: Calendar },
+    { title: "Usuários", href: "/usuarios", icon: Users },
+    { title: "Prestadores", href: "/prestadores", icon: BarChart },
+    { title: "Grupos", href: "/grupos", icon: Group },
+  ]
 
   useEffect(() => {
     const savedState = localStorage.getItem("sidebarCollapsed")

@@ -6,11 +6,20 @@ import { PostCard } from "./components/post-card"
 import { PostSkeleton } from "./components/post-skeleton"
 import { CriarPostDialog } from "./components/criar-post-dialog"
 import { Bell } from "lucide-react"
+import { useVisualizarTodos } from "./hooks/use-visualizar-todos"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 
 export function Feed() {
   const [dialogAberto, setDialogAberto] = useState(false)
+  const [confirmacaoAberta, setConfirmacaoAberta] = useState(false)
   const { postagens, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage, marcarPostComoLido } = usePostagens()
   const { quantidadeNaoVisualizadas } = useNaoVisualizadas()
+  const { mutateAsync: visualizarTodos, isPending: visualizarTodosPending } = useVisualizarTodos()
+
+  const handleVisualizarTodos = async () => {
+    await visualizarTodos()
+    setConfirmacaoAberta(false)
+  }
 
   return (
     <div className="container py-6 space-y-6">
@@ -26,11 +35,11 @@ export function Feed() {
           <Button
             variant="outline"
             className="relative"
-            onClick={() => marcarPostComoLido(postagens[0]?.id)}
-            disabled={!quantidadeNaoVisualizadas}
+            onClick={() => setConfirmacaoAberta(true)}
+            disabled={!quantidadeNaoVisualizadas || visualizarTodosPending}
           >
             <Bell className="mr-2 h-4 w-4" />
-            Marcar todos como lidos
+            {visualizarTodosPending ? "Marcando..." : "Marcar todos como lidos"}
             {quantidadeNaoVisualizadas > 0 && (
               <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">
                 {quantidadeNaoVisualizadas}
@@ -95,6 +104,23 @@ export function Feed() {
         isOpen={dialogAberto}
         onClose={() => setDialogAberto(false)}
       />
+
+      <AlertDialog open={confirmacaoAberta} onOpenChange={setConfirmacaoAberta}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Marcar todos como lidos</AlertDialogTitle>
+            <AlertDialogDescription>
+              Após confirmar, todos os posts serão marcados como visualizados. Deseja continuar?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleVisualizarTodos}>
+              Confirmar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

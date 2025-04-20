@@ -44,7 +44,7 @@ export function Header({ className }: HeaderProps) {
       </div>
 
       <div className="flex items-center gap-2">
-        <DropdownMenu>
+        {/* <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="icon" className="rounded-full relative">
               <Bell className="h-5 w-5" />
@@ -63,9 +63,9 @@ export function Header({ className }: HeaderProps) {
             </div>
             <div className="py-2 px-4 text-sm text-muted-foreground">Você tem 3 notificações não lidas.</div>
           </DropdownMenuContent>
-        </DropdownMenu>
+        </DropdownMenu> */}
 
-        <DropdownMenu>
+        {/* <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               variant="outline"
@@ -92,7 +92,7 @@ export function Header({ className }: HeaderProps) {
               <span>Sistema</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
-        </DropdownMenu>
+        </DropdownMenu> */}
       </div>
     </header>
   )
