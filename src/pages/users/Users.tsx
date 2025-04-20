@@ -85,12 +85,33 @@ export const Users = () => {
     }
   }
 
+  const getTipoBadge = (tipo: string) => {
+    switch (tipo?.toLowerCase()) {
+      case "admin":
+        return <Badge className="bg-purple-500">ADMINISTRADOR</Badge>
+      case "prestador":
+        return <Badge className="bg-blue-500">PRESTADOR</Badge>
+      case "funcionario":
+        return <Badge className="bg-green-500">FUNCIONÁRIO</Badge>
+      default:
+        return <Badge>{tipo?.toUpperCase()}</Badge>
+    }
+  }
+
   const handleOpenCreateModal = () => {
     setSelectedUserId(undefined)
     setIsModalOpen(true)
   }
 
-  const handleOpenEditModal = (userId: string) => {
+  const handleOpenEditModal = (userId: string, tipo: string) => {
+    if (tipo?.toLowerCase() === "prestador") {
+      toast({
+        title: "Ação não permitida",
+        description: "Usuários do tipo prestador não podem ser editados.",
+        variant: "destructive"
+      })
+      return
+    }
     setSelectedUserId(userId)
     setIsModalOpen(true)
   }
@@ -218,6 +239,12 @@ export const Users = () => {
                       <span className="ml-1">{sortField === "email" && (sortDirection === "asc" ? "↑" : "↓")}</span>
                     </div>
                   </TableHead>
+                  <TableHead className="cursor-pointer" onClick={() => handleSort("tipo")}>
+                    <div className="flex items-center">
+                      Tipo
+                      <span className="ml-1">{sortField === "tipo" && (sortDirection === "asc" ? "↑" : "↓")}</span>
+                    </div>
+                  </TableHead>
                   <TableHead className="cursor-pointer" onClick={() => handleSort("status")}>
                     <div className="flex items-center">
                       Status
@@ -247,17 +274,18 @@ export const Users = () => {
               <TableBody>
                 {paginatedUsers.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="h-24 text-center">
+                    <TableCell colSpan={9} className="h-24 text-center">
                       Nenhum usuário encontrado.
                     </TableCell>
                   </TableRow>
                 ) : (
                   paginatedUsers.map((user) => (
-                    <TableRow key={user.id}>
+                    <TableRow key={user.id} className={user.tipo?.toLowerCase() === "prestador" ? "opacity-75" : ""}>
                       <TableCell className="font-medium">{user.matricula}</TableCell>
                       <TableCell>{user.nome}</TableCell>
                       <TableCell className="hidden md:table-cell">{user.nome_usuario}</TableCell>
                       <TableCell className="hidden md:table-cell">{user.email}</TableCell>
+                      <TableCell>{getTipoBadge(user.tipo)}</TableCell>
                       <TableCell>{getStatusBadge(user.status)}</TableCell>
                       <TableCell className="hidden lg:table-cell">{typeof user.grupo === 'object' ? user.grupo.nome : user.grupo}</TableCell>
                       <TableCell className="hidden lg:table-cell">{formatDate(user.data_ultima_atualizacao)}</TableCell>
@@ -270,15 +298,16 @@ export const Users = () => {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleOpenEditModal(user.id)}>
+                            <DropdownMenuItem
+                              onClick={() => handleOpenEditModal(user.id, user.tipo)}
+                              className={user.tipo?.toLowerCase() === "prestador" ? "cursor-not-allowed opacity-50" : ""}
+                            >
                               <Edit className="mr-2 h-4 w-4" />
                               Editar usuário
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               className="text-destructive"
-                              onClick={async () =>
-                                await deleteUser.mutateAsync(user.id)
-                              }
+                              onClick={async () => await deleteUser.mutateAsync(user.id)}
                             >
                               <Trash2 className="mr-2 h-4 w-4" />
                               Excluir usuário

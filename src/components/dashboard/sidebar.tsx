@@ -57,7 +57,7 @@ export function DashboardSidebar() {
     { title: "Financeiro", href: "/financeiro", icon: Wallet },
     { title: "Férias", href: "/ferias", icon: Calendar },
     { title: "Usuários", href: "/usuarios", icon: Users },
-    { title: "Prestadores", href: "/prestadores", icon: BarChart },
+    // { title: "Prestadores", href: "/prestadores", icon: BarChart },
     { title: "Grupos", href: "/grupos", icon: Group },
   ]
 
