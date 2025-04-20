@@ -280,15 +280,15 @@ export const Users = () => {
                   </TableRow>
                 ) : (
                   paginatedUsers.map((user) => (
-                    <TableRow key={user.id} className={user.tipo?.toLowerCase() === "prestador" ? "opacity-75" : ""}>
-                      <TableCell className="font-medium">{user.matricula}</TableCell>
-                      <TableCell>{user.nome}</TableCell>
-                      <TableCell className="hidden md:table-cell">{user.nome_usuario}</TableCell>
-                      <TableCell className="hidden md:table-cell">{user.email}</TableCell>
-                      <TableCell>{getTipoBadge(user.tipo)}</TableCell>
-                      <TableCell>{getStatusBadge(user.status)}</TableCell>
-                      <TableCell className="hidden lg:table-cell">{typeof user.grupo === 'object' ? user.grupo.nome : user.grupo}</TableCell>
-                      <TableCell className="hidden lg:table-cell">{formatDate(user.data_ultima_atualizacao)}</TableCell>
+                    <TableRow key={user?.id} className={user?.tipo?.toLowerCase() === "prestador" ? "opacity-75" : ""}>
+                      <TableCell className="font-medium">{user?.matricula}</TableCell>
+                      <TableCell>{user?.nome}</TableCell>
+                      <TableCell className="hidden md:table-cell">{user?.nome_usuario}</TableCell>
+                      <TableCell className="hidden md:table-cell">{user?.email}</TableCell>
+                      <TableCell>{getTipoBadge(user?.tipo)}</TableCell>
+                      <TableCell>{getStatusBadge(user?.status)}</TableCell>
+                      <TableCell className="hidden lg:table-cell">{typeof user?.grupo === 'object' ? user?.grupo.nome : user?.grupo}</TableCell>
+                      <TableCell className="hidden lg:table-cell">{formatDate(user?.data_ultima_atualizacao)}</TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -299,8 +299,8 @@ export const Users = () => {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem
-                              onClick={() => handleOpenEditModal(user.id, user.tipo)}
-                              className={user.tipo?.toLowerCase() === "prestador" ? "cursor-not-allowed opacity-50" : ""}
+                              onClick={() => handleOpenEditModal(user?.id, user?.tipo)}
+                              className={user?.tipo?.toLowerCase() === "prestador" ? "cursor-not-allowed opacity-50" : ""}
                             >
                               <Edit className="mr-2 h-4 w-4" />
                               Editar usuário
