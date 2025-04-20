@@ -287,7 +287,7 @@ export const Users = () => {
                       <TableCell className="hidden md:table-cell">{user?.email}</TableCell>
                       <TableCell>{getTipoBadge(user?.tipo)}</TableCell>
                       <TableCell>{getStatusBadge(user?.status)}</TableCell>
-                      <TableCell className="hidden lg:table-cell">{typeof user?.grupo === 'object' ? user?.grupo.nome : user?.grupo}</TableCell>
+                      <TableCell className="hidden lg:table-cell">{typeof user?.grupo === 'object' ? user?.grupo?.nome : user?.grupo}</TableCell>
                       <TableCell className="hidden lg:table-cell">{formatDate(user?.data_ultima_atualizacao)}</TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
