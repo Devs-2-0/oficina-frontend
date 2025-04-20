@@ -122,7 +122,7 @@ export function ContractModal({ isOpen, onClose, contratoId }: ContractModalProp
       const formData = new FormData()
       formData.append("competencia", data.competencia)
       formData.append("prestadorId", data.prestadorId)
-      formData.append("criadorId", String(usuario.id))
+      // formData.append("criadorId", String(usuario.id))
 
       if (data.arquivo instanceof File) {
         formData.append("arquivo", data.arquivo)
