@@ -133,7 +133,11 @@ export const FeriasModal = ({ isOpen, onClose, solicitacao }: FeriasModalProps) 
           <DialogTitle>{solicitacao ? 'Editar Solicitação de Férias' : 'Nova Solicitação de Férias'}</DialogTitle>
           <DialogDescription>
             Você possui {periodoAquisitivo?.saldo_dias} dias disponíveis para solicitar férias.
-            Período aquisitivo: {format(new Date(periodoAquisitivo?.inicio || ''), "dd/MM/yyyy")} a {format(new Date(periodoAquisitivo?.fim || ''), "dd/MM/yyyy")}
+            {periodoAquisitivo?.inicio && periodoAquisitivo?.fim && (
+              <>
+                Período aquisitivo: {format(new Date(periodoAquisitivo.inicio), "dd/MM/yyyy", { locale: ptBR })} a {format(new Date(periodoAquisitivo.fim), "dd/MM/yyyy", { locale: ptBR })}
+              </>
+            )}
           </DialogDescription>
         </DialogHeader>
 
