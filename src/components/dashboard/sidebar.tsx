@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
 import { useNaoVisualizadas } from "@/pages/feed/hooks/use-nao-visualizadas"
+import { useAuth } from "@/contexts/auth-context"
 
 interface NavItem {
   title: string
@@ -45,6 +46,7 @@ export function DashboardSidebar() {
   const [isOpen, setIsOpen] = useState(false)
   const [collapsed, setCollapsed] = useState(false)
   const { toast } = useToast()
+  const { logout, usuario } = useAuth()
 
 
   const { quantidadeNaoVisualizadas } = useNaoVisualizadas()
@@ -142,29 +144,28 @@ export function DashboardSidebar() {
         </ScrollArea>
 
         <div className="border-t border-sidebar-border p-4">
-          <div className={cn("flex items-center", collapsed ? "justify-center" : "justify-between")}>
+          <div className={cn("flex items-center", collapsed ? "justify-center" : "justify-between gap-2")}>
             {!collapsed ? (
-              <UserAvatar name="João Silva" />
+              <div className="flex items-center min-w-0 flex-1">
+                <UserAvatar name={usuario?.nome ?? ''} />
+              </div>
             ) : (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="rounded-full h-8 w-8 p-0">
-                    <UserAvatar name="João Silva" compact />
+                    <UserAvatar name={usuario?.nome ?? ''} compact />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
+                  <div className="px-2 py-1.5">
+                    <div className="text-sm font-medium truncate">
+                      {usuario?.nome}
+                    </div>
+                  </div>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>
-                    <Settings className="mr-2 h-4 w-4" />
-                    <span>Configurações</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link to="/login" className="w-full">
-                      <LogOut className="mr-2 h-4 w-4" />
-                      <span>Sair</span>
-                    </Link>
+                  <DropdownMenuItem onClick={logout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Sair</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -173,13 +174,11 @@ export function DashboardSidebar() {
               <Button
                 variant="ghost"
                 size="icon"
-                asChild
-                className="text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent rounded-full"
+                onClick={logout}
+                className="text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent rounded-full flex-shrink-0"
               >
-                <Link to="/login">
-                  <LogOut className="h-4 w-4" />
-                  <span className="sr-only">Sair</span>
-                </Link>
+                <LogOut className="h-4 w-4" />
+                <span className="sr-only">Sair</span>
               </Button>
             ) : null}
           </div>
@@ -246,18 +245,18 @@ export function DashboardSidebar() {
           </ScrollArea>
 
           <div className="border-t border-sidebar-border p-4">
-            <div className="flex items-center justify-between">
-              <UserAvatar name="João Silva" />
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center min-w-0 flex-1">
+                <UserAvatar name={usuario?.nome ?? ''} />
+              </div>
               <Button
                 variant="ghost"
                 size="icon"
-                asChild
-                className="text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent rounded-full"
+                onClick={logout}
+                className="text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent rounded-full flex-shrink-0"
               >
-                <Link to="/login">
-                  <LogOut className="h-4 w-4" />
-                  <span className="sr-only">Sair</span>
-                </Link>
+                <LogOut className="h-4 w-4" />
+                <span className="sr-only">Sair</span>
               </Button>
             </div>
           </div>

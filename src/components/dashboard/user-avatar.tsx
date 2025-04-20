@@ -29,7 +29,9 @@ export function UserAvatar({ name, className, compact = false }: UserAvatarProps
       <Avatar className="border border-primary-foreground/10">
         <AvatarFallback className="bg-primary-foreground/10 text-primary-foreground">{initials}</AvatarFallback>
       </Avatar>
-      <div className="text-sm font-medium text-primary-foreground">{name}</div>
+      <div className="min-w-0 max-w-[150px]">
+        <div className="text-sm font-medium text-primary-foreground truncate">{name}</div>
+      </div>
     </div>
   )
 }
