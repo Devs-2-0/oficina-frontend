@@ -12,6 +12,7 @@ import { Providers } from './pages/providers/Providers'
 import { ForgotPassword } from './pages/ForgotPassword'
 import { Groups } from './pages/groups'
 import { Financeiro } from './pages/financeiro/Financeiro'
+import { VacationAdmin } from './pages/vaccation-admin/VacationAdmin'
 // import { ProtectedRoute } from './components/ProtectedRoute' // ajuste se necessário
 // import { ErrorBoundary } from './pages/_layouts/pages/error' // opcional
 
@@ -54,6 +55,10 @@ const protectedRoutes: RouteObject[] = [
   {
     path: '/grupos',
     element: <Groups />,
+  },
+  {
+    path: '/solicitacoes-ferias',
+    element: <VacationAdmin />,
   }
 ]
 

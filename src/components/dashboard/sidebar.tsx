@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom"
 import {
   BarChart,
   Calendar,
+  CalendarDays,
   ChevronLeft,
   ChevronRight,
   FileText,
@@ -56,6 +57,7 @@ export function DashboardSidebar() {
     { title: "Contratos", href: "/contratos", icon: FileText },
     { title: "Financeiro", href: "/financeiro", icon: Wallet },
     { title: "Férias", href: "/ferias", icon: Calendar },
+    { title: "Solicitações de férias", href: "/solicitacoes-ferias", icon: CalendarDays },
     { title: "Usuários", href: "/usuarios", icon: Users },
     // { title: "Prestadores", href: "/prestadores", icon: BarChart },
     { title: "Grupos", href: "/grupos", icon: Group },
