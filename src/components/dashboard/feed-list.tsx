@@ -64,17 +64,24 @@ const initialPosts = [
   },
 ]
 
+interface NewPost {
+  title: string
+  subtitle: string
+  description: string
+  images: string[]
+}
+
 export function FeedList() {
   const [posts, setPosts] = useState(initialPosts)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const { toast } = useToast()
 
-  const handleLike = (id) => {
+  const handleLike = (id: number) => {
     setPosts(posts.map((post) => (post.id === id ? { ...post, likes: post.likes + 1 } : post)))
     toast({ title: "Post curtido", description: "Você curtiu esta publicação." })
   }
 
-  const handleMarkAsRead = (id) => {
+  const handleMarkAsRead = (id: number) => {
     setPosts(posts.map((post) => (post.id === id ? { ...post, read: true, views: post.views + 1 } : post)))
     toast({ title: "Post marcado como lido", description: "Esta publicação foi marcada como lida." })
   }
@@ -84,7 +91,7 @@ export function FeedList() {
     toast({ title: "Todos os posts marcados como lidos" })
   }
 
-  const handleCreatePost = (newPost) => {
+  const handleCreatePost = (newPost: NewPost) => {
     const post = {
       ...newPost,
       id: posts.length + 1,
@@ -98,7 +105,7 @@ export function FeedList() {
     toast({ title: "Post criado", description: "Sua publicação foi criada com sucesso." })
   }
 
-  const formatDate = (dateString) => {
+  const formatDate = (dateString: string) => {
     const date = new Date(dateString)
     return new Intl.DateTimeFormat("pt-BR", {
       day: "2-digit",

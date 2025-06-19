@@ -1,4 +1,3 @@
-import api from '@/http/api'
 import { Financeiro } from '@/types/financeiro'
 
 export const listarFinanceiros = async (): Promise<Financeiro[]> => {
@@ -10,12 +9,15 @@ export const listarFinanceiros = async (): Promise<Financeiro[]> => {
       competencia: 'Outubro/2023',
       nro_pagamento: 'PAY-010',
       tipo: 'Pagamento',
-      valor: '7620.00',
-      data_baixa: '2023-10-14',
+      valor: 7620.00,
+      data_pagamento: '2023-10-14',
       prestador: {
         id: 1,
         nome: 'Juliana Costa',
         email: 'juliana@exemplo.com',
+        matricula: '123456',
+        tipo: 'prestador',
+        grupo: 'prestadores'
       },
       data_criacao: new Date('2023-10-14'),
       data_ultima_atualizacao: new Date('2023-10-14'),

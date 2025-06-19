@@ -223,7 +223,7 @@ export const Groups = () => {
                         <div className="flex flex-wrap gap-1">
                           {group.permissoes.map((permissao) => (
                             <Badge key={permissao.codigo} variant="secondary">
-                              {permissao.nome}
+                              {permissao.codigo}
                             </Badge>
                           ))}
                         </div>

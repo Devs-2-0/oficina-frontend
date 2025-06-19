@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { getUserById } from "@/http/services/users/get-user-by-id";
@@ -17,15 +17,15 @@ import { useUpdateUserMutation } from "../hooks/use-patch-user";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const userSchema = z.object({
-  matricula: z.string().nonempty("Matrícula é obrigatória"),
-  nome: z.string().nonempty("Nome é obrigatório"),
-  identificacao: z.string().nonempty("Identificação é obrigatória"),
-  nome_usuario: z.string().nonempty("Nome de usuário é obrigatório"),
-  senha: z.string().nonempty("Senha é obrigatória"),
-  endereco: z.string().nonempty("Endereço é obrigatório"),
-  bairro: z.string().nonempty("Bairro é obrigatório"),
-  cidade: z.string().nonempty("Cidade é obrigatória"),
-  uf: z.string().nonempty("UF é obrigatório"),
+  matricula: z.string().min(1, "Matrícula é obrigatória"),
+  nome: z.string().min(1, "Nome é obrigatório"),
+  identificacao: z.string().min(1, "Identificação é obrigatória"),
+  nome_usuario: z.string().min(1, "Nome de usuário é obrigatório"),
+  senha: z.string().min(1, "Senha é obrigatória"),
+  endereco: z.string().min(1, "Endereço é obrigatório"),
+  bairro: z.string().min(1, "Bairro é obrigatório"),
+  cidade: z.string().min(1, "Cidade é obrigatória"),
+  uf: z.string().min(1, "UF é obrigatória"),
   grupo: z.string().min(1, "Grupo é obrigatório"),
   email: z.string().email("Email inválido"),
 });
@@ -47,7 +47,7 @@ export const UserModal = ({ isOpen, onClose, userId }: UserModalProps) => {
 
   const { data: userData, isLoading: isLoadingUser } = useQuery({
     queryKey: ['user', userId],
-    queryFn: () => getUserById(userId!),
+    queryFn: () => getUserById(Number(userId!)),
     enabled: !!userId,
   });
 
@@ -105,6 +105,7 @@ export const UserModal = ({ isOpen, onClose, userId }: UserModalProps) => {
       await updateUser.mutateAsync({
         id: userId,
         ...data,
+        grupo: Number(data.grupo)
       });
       toast({
         title: "Usuário atualizado",
@@ -112,7 +113,10 @@ export const UserModal = ({ isOpen, onClose, userId }: UserModalProps) => {
         duration: 3000,
       });
     } else {
-      await postUser.mutateAsync(data);
+      await postUser.mutateAsync({
+        ...data,
+        grupo: Number(data.grupo)
+      });
       toast({
         title: "Usuário criado",
         description: "Novo usuário criado com sucesso.",

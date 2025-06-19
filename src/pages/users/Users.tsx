@@ -41,12 +41,14 @@ export const Users = () => {
   )
 
   // Sort users
-  const sortedUsers = [...filteredUsers].sort((a, b) => {
+  const sortedUsers = filteredUsers.sort((a, b) => {
     const fieldA = a[sortField as keyof typeof a]
     const fieldB = b[sortField as keyof typeof b]
 
-    if (fieldA < fieldB) return sortDirection === "asc" ? -1 : 1
-    if (fieldA > fieldB) return sortDirection === "asc" ? 1 : -1
+    if (fieldA && fieldB) {
+      if (fieldA < fieldB) return sortDirection === "asc" ? -1 : 1
+      if (fieldA > fieldB) return sortDirection === "asc" ? 1 : -1
+    }
     return 0
   })
 
@@ -103,7 +105,7 @@ export const Users = () => {
     setIsModalOpen(true)
   }
 
-  const handleOpenEditModal = (userId: string, tipo: string) => {
+  const handleOpenEditModal = (userId: number, tipo: string) => {
     if (tipo?.toLowerCase() === "prestador") {
       toast({
         title: "Ação não permitida",
@@ -112,7 +114,7 @@ export const Users = () => {
       })
       return
     }
-    setSelectedUserId(userId)
+    setSelectedUserId(userId?.toString())
     setIsModalOpen(true)
   }
 

@@ -1,4 +1,11 @@
-import { Usuario } from "@/http/services/usuario/listar-usuarios"
+export interface Usuario {
+  id: number
+  nome: string
+  email: string
+  matricula: string
+  tipo: string
+  grupo?: string
+}
 
 export interface ItemFinanceiro {
   codigo: string
@@ -14,11 +21,12 @@ export interface Financeiro {
   competencia: string
   nro_pagamento: string
   tipo: 'Pagamento' | 'Adiantamento' | 'Reembolso' | 'Outros'
-  valor: string
-  data_baixa: string
+  valor: number
+  data_pagamento: string
+  status: string
+  observacoes?: string
   prestador: Usuario
   data_criacao: Date
   data_ultima_atualizacao: Date
-  status: 'Pendente' | 'Pago' | 'Cancelado'
   itens: ItemFinanceiro[]
 } 

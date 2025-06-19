@@ -119,7 +119,7 @@ export const Financeiro = () => {
                       <TableCell>{financeiro.nro_pagamento}</TableCell>
                       <TableCell>{financeiro.tipo}</TableCell>
                       <TableCell>{financeiro.prestador.nome}</TableCell>
-                      <TableCell>{new Date(financeiro.data_baixa).toLocaleDateString('pt-BR')}</TableCell>
+                      <TableCell>{new Date(financeiro.data_pagamento).toLocaleDateString('pt-BR')}</TableCell>
                       <TableCell>{getStatusBadge(financeiro.status)}</TableCell>
                       <TableCell>{formatCurrency(Number(financeiro.valor))}</TableCell>
                       <TableCell className="text-right">
@@ -194,7 +194,7 @@ export const Financeiro = () => {
                         <div>Prestador:</div>
                         <div>{selectedFinanceiroData.prestador.nome}</div>
                         <div>Data de Pagamento:</div>
-                        <div>{new Date(selectedFinanceiroData.data_baixa).toLocaleDateString('pt-BR')}</div>
+                        <div>{new Date(selectedFinanceiroData.data_pagamento).toLocaleDateString('pt-BR')}</div>
                         <div>Status:</div>
                         <div>{getStatusBadge(selectedFinanceiroData.status)}</div>
                         <div>Valor Líquido:</div>

@@ -1,4 +1,11 @@
-import { Usuario } from "@/http/services/usuario/listar-usuarios"
+export interface Usuario {
+  id: number
+  nome: string
+  email: string
+  matricula: string
+  tipo: string
+  grupo?: string
+}
 
 export interface PeriodoFerias {
   data_inicio: string

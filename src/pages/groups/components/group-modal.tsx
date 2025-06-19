@@ -69,9 +69,7 @@ export function GroupModal({ isOpen, onClose, groupId }: GroupModalProps) {
     } else {
       criarGrupo({
         ...dadosGrupo,
-        permissoes: permissoesSelecionadas.map((permission: string) => ({
-          codigo: permission
-        }))
+        permissoes: permissoesSelecionadas
       }, {
         onSuccess: () => {
           onClose()
