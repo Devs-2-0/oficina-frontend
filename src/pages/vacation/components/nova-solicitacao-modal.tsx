@@ -142,8 +142,8 @@ export const NovaSolicitacaoModal = ({ isOpen, onClose, periodoElegivel }: NovaS
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
+      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle>Nova Solicitação de Férias</DialogTitle>
           <DialogDescription>
             Você possui {diasDisponiveis} dias disponíveis para solicitar férias.
@@ -151,101 +151,103 @@ export const NovaSolicitacaoModal = ({ isOpen, onClose, periodoElegivel }: NovaS
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-6 py-4">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <Label>Períodos de Férias</Label>
-              {periodos.length < 3 && (
-                <Button type="button" variant="outline" size="sm" onClick={adicionarPeriodo}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Adicionar Período
-                </Button>
-              )}
-            </div>
-
-            {temSobreposicao && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
-                  Existe sobreposição de datas entre os períodos. Verifique as datas selecionadas.
-                </AlertDescription>
-              </Alert>
-            )}
-
-            {!totalDiasValido && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
-                  O total de dias solicitados excede o saldo disponível.
-                </AlertDescription>
-              </Alert>
-            )}
-
-            {periodos.map((periodo, index) => (
-              <div key={index} className="grid gap-4 p-4 border rounded-lg">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-medium">{index + 1}º Período</h4>
-                  {periodos.length > 1 && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removerPeriodo(index)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor={`inicio-${index}`}>Data de Início *</Label>
-                    <Input
-                      id={`inicio-${index}`}
-                      type="date"
-                      min={index === 0 ? hoje : getMinDateForPeriodo(index)}
-                      value={periodo.data_inicio}
-                      onChange={(e) => handleDataChange(index, 'data_inicio', e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor={`dias-${index}`}>Dias Corridos *</Label>
-                    <Input
-                      id={`dias-${index}`}
-                      type="number"
-                      min="1"
-                      max="30"
-                      value={periodo.dias_corridos}
-                      onChange={(e) => handleDataChange(index, 'dias_corridos', parseInt(e.target.value) || 0)}
-                    />
-                  </div>
-                </div>
-                {periodo.data_inicio && periodo.dias_corridos > 0 && (
-                  <div className="text-sm text-muted-foreground">
-                    Período: {format(new Date(periodo.data_inicio), "dd/MM/yyyy", { locale: ptBR })} a {format(getDataTermino(periodo.data_inicio, periodo.dias_corridos)!, "dd/MM/yyyy", { locale: ptBR })}
-                  </div>
+        <div className="flex-1 overflow-y-auto">
+          <div className="grid gap-6 py-4">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label>Períodos de Férias</Label>
+                {periodos.length < 3 && (
+                  <Button type="button" variant="outline" size="sm" onClick={adicionarPeriodo}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Adicionar Período
+                  </Button>
                 )}
               </div>
-            ))}
 
-            <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
-              <span className="font-medium">Total de Dias:</span>
-              <span className="text-lg font-bold">{totalDias} dias</span>
+              {temSobreposicao && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    Existe sobreposição de datas entre os períodos. Verifique as datas selecionadas.
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {!totalDiasValido && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    O total de dias solicitados excede o saldo disponível.
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {periodos.map((periodo, index) => (
+                <div key={index} className="grid gap-4 p-4 border rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium">{index + 1}º Período</h4>
+                    {periodos.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removerPeriodo(index)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor={`inicio-${index}`}>Data de Início *</Label>
+                      <Input
+                        id={`inicio-${index}`}
+                        type="date"
+                        min={index === 0 ? hoje : getMinDateForPeriodo(index)}
+                        value={periodo.data_inicio}
+                        onChange={(e) => handleDataChange(index, 'data_inicio', e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor={`dias-${index}`}>Dias Corridos *</Label>
+                      <Input
+                        id={`dias-${index}`}
+                        type="number"
+                        min="1"
+                        max="30"
+                        value={periodo.dias_corridos}
+                        onChange={(e) => handleDataChange(index, 'dias_corridos', parseInt(e.target.value) || 0)}
+                      />
+                    </div>
+                  </div>
+                  {periodo.data_inicio && periodo.dias_corridos > 0 && (
+                    <div className="text-sm text-muted-foreground">
+                      Período: {format(new Date(periodo.data_inicio), "dd/MM/yyyy", { locale: ptBR })} a {format(getDataTermino(periodo.data_inicio, periodo.dias_corridos)!, "dd/MM/yyyy", { locale: ptBR })}
+                    </div>
+                  )}
+                </div>
+              ))}
+
+              <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
+                <span className="font-medium">Total de Dias:</span>
+                <span className="text-lg font-bold">{totalDias} dias</span>
+              </div>
             </div>
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="observacoes">Observações</Label>
-            <Textarea
-              id="observacoes"
-              placeholder="Observações adicionais (opcional)"
-              value={observacoes}
-              onChange={(e) => setObservacoes(e.target.value)}
-              rows={3}
-            />
+            <div className="space-y-2">
+              <Label htmlFor="observacoes">Observações</Label>
+              <Textarea
+                id="observacoes"
+                placeholder="Observações adicionais (opcional)"
+                value={observacoes}
+                onChange={(e) => setObservacoes(e.target.value)}
+                rows={3}
+              />
+            </div>
           </div>
         </div>
 
-        <div className="flex justify-end gap-2">
+        <div className="flex justify-end gap-2 flex-shrink-0 pt-4 border-t">
           <Button variant="outline" onClick={onClose}>
             Cancelar
           </Button>
