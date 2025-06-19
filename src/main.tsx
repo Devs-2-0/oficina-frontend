@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ThemeProvider } from './components/theme-provider'
 import { RouterProvider } from 'react-router-dom'
 import { router } from './router'
-import { Toaster } from "@/components/ui/toaster"
+import { Toaster } from 'sonner'
 import { AuthProvider } from './contexts/auth-context'
 
 const queryClient = new QueryClient()
