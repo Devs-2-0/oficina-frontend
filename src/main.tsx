@@ -7,7 +7,7 @@ import { router } from './router'
 import { Toaster } from 'sonner'
 import { AuthProvider } from './contexts/auth-context'
 
-const queryClient = new QueryClient()
+const queryClient = new QueryClient({defaultOptions: {queries: {retry: 2}}})
 
 createRoot(document.getElementById('root')!).render(
   <QueryClientProvider client={queryClient}>
