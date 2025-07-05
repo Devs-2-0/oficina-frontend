@@ -104,7 +104,7 @@ export const VacationAdmin = () => {
   }
 
   return (
-    <TooltipProvider delayDuration={300}>
+    <TooltipProvider delayDuration={300} skipDelayDuration={300}>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-red-50">
         <div className="container mx-auto px-4 py-8">
           {/* Header Section */}
@@ -154,7 +154,7 @@ export const VacationAdmin = () => {
             </div>
 
             {/* Table */}
-            <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm overflow-hidden">
+            <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm relative">
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
@@ -308,7 +308,7 @@ export const VacationAdmin = () => {
                                         <XCircle className="h-4 w-4" />
                                       </Button>
                                     </TooltipTrigger>
-                                    <TooltipContent side="top">
+                                    <TooltipContent side="top" >
                                       <p>Reprovar solicitação</p>
                                     </TooltipContent>
                                   </Tooltip>
