@@ -76,14 +76,7 @@ export default function LoginForm() {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="password">Senha</Label>
-              <Button
-                variant="link"
-                className="px-0 text-sm font-medium text-primary"
-                onClick={() => navigate("/recuperar-senha")}
-                type="button"
-              >
-                Esqueci minha senha
-              </Button>
+             
             </div>
             <div className="relative">
               <Input
@@ -106,7 +99,18 @@ export default function LoginForm() {
                 <span className="sr-only">{showPassword ? "Esconder senha" : "Mostrar senha"}</span>
               </Button>
             </div>
+            <div className="flex justify-end">
+            <Button
+                variant="link"
+                className="px-0 text-sm font-medium text-primary"
+                onClick={() => navigate("/recuperar-senha")}
+                type="button"
+              >
+                Esqueci minha senha
+              </Button>
+            </div>
           </div>
+
           <Button type="submit" className="w-full bg-primary" disabled={login.isPending}>
             {login.isPending ? "Entrando..." : "Entrar"}
           </Button>
