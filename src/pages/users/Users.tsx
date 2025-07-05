@@ -1,13 +1,12 @@
-import { PageHeader } from "@/components/dashboard/page-header"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card } from "@/components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useToast } from "@/hooks/use-toast"
-import { Edit, MoreHorizontal, Search, Trash2, UserPlus } from "lucide-react"
+import { Edit, MoreHorizontal, Search, Trash2, UserPlus, Users as UsersIcon } from "lucide-react"
 import { useState } from "react"
 import { useGetUsers } from "./hooks/use-get-users"
 import { UserModal } from "./components/user-modal"
@@ -56,9 +55,7 @@ export const Users = () => {
   const totalPages = Math.ceil(sortedUsers.length / perPage)
   const paginatedUsers = sortedUsers.slice((page - 1) * perPage, page * perPage)
 
-  const handleSearch = () => {
-    setPage(1)
-  }
+
 
   const handleSort = (field: string) => {
     const direction = field === sortField && sortDirection === "asc" ? "desc" : "asc"
@@ -181,151 +178,189 @@ export const Users = () => {
   }
 
   return (
-    <div className="container py-6 space-y-6">
-      <PageHeader title="Usuários" description="Gerencie os usuários do sistema" />
-
-      {/* Usando nosso novo componente UserModal */}
-      <UserModal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        userId={selectedUserId}
-      />
-
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div className="flex w-full max-w-sm items-center space-x-2">
-              <Input
-                placeholder="Buscar usuários..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="h-9"
-              />
-              <Button type="submit" size="sm" onClick={handleSearch}>
-                <Search className="h-4 w-4" />
-                <span className="sr-only">Buscar</span>
-              </Button>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-red-50">
+      <div className="container mx-auto px-4 py-8">
+        {/* Header Section */}
+        <div className="mb-10">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-3 bg-red-100 rounded-xl">
+              <UsersIcon className="h-8 w-8 text-red-700" />
             </div>
+            <div>
+              <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
+                Usuários
+              </h1>
+              <p className="text-lg text-gray-600 mt-1">
+                Gerencie os usuários do sistema
+              </p>
+            </div>
+          </div>
+        </div>
 
-            <Button size="sm" onClick={handleOpenCreateModal}>
+        {/* Usuários Section */}
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 bg-red-100 rounded-lg">
+              <UserPlus className="h-5 w-5 text-red-700" />
+            </div>
+            <div className="flex-1">
+              <h2 className="text-2xl font-semibold text-gray-900">
+                Lista de Usuários
+              </h2>
+              <p className="text-gray-600">
+                Visualize e gerencie todos os usuários cadastrados no sistema
+              </p>
+            </div>
+            <Button 
+              onClick={handleOpenCreateModal}
+              className="bg-red-700 hover:bg-red-800 text-white border-red-700 hover:border-red-800"
+            >
               <UserPlus className="mr-2 h-4 w-4" />
               Novo Usuário
             </Button>
           </div>
 
-          <div className="mt-6 rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="cursor-pointer" onClick={() => handleSort("matricula")}>
-                    <div className="flex items-center">
-                      Matrícula
-                      <span className="ml-1">{sortField === "matricula" && (sortDirection === "asc" ? "↑" : "↓")}</span>
-                    </div>
-                  </TableHead>
-                  <TableHead className="cursor-pointer" onClick={() => handleSort("nome")}>
-                    <div className="flex items-center">
-                      Nome
-                      <span className="ml-1">{sortField === "nome" && (sortDirection === "asc" ? "↑" : "↓")}</span>
-                    </div>
-                  </TableHead>
-                  <TableHead className="cursor-pointer hidden md:table-cell" onClick={() => handleSort("nome_usuario")}>
-                    <div className="flex items-center">
-                      Username
-                      <span className="ml-1">{sortField === "nome_usuario" && (sortDirection === "asc" ? "↑" : "↓")}</span>
-                    </div>
-                  </TableHead>
-                  <TableHead className="cursor-pointer hidden md:table-cell" onClick={() => handleSort("email")}>
-                    <div className="flex items-center">
-                      Email
-                      <span className="ml-1">{sortField === "email" && (sortDirection === "asc" ? "↑" : "↓")}</span>
-                    </div>
-                  </TableHead>
-                  <TableHead className="cursor-pointer" onClick={() => handleSort("tipo")}>
-                    <div className="flex items-center">
-                      Tipo
-                      <span className="ml-1">{sortField === "tipo" && (sortDirection === "asc" ? "↑" : "↓")}</span>
-                    </div>
-                  </TableHead>
-                  <TableHead className="cursor-pointer" onClick={() => handleSort("status")}>
-                    <div className="flex items-center">
-                      Status
-                      <span className="ml-1">{sortField === "status" && (sortDirection === "asc" ? "↑" : "↓")}</span>
-                    </div>
-                  </TableHead>
-                  <TableHead className="cursor-pointer hidden lg:table-cell" onClick={() => handleSort("grupo")}>
-                    <div className="flex items-center">
-                      Grupo
-                      <span className="ml-1">{sortField === "grupo" && (sortDirection === "asc" ? "↑" : "↓")}</span>
-                    </div>
-                  </TableHead>
-                  <TableHead
-                    className="cursor-pointer hidden lg:table-cell"
-                    onClick={() => handleSort("data_ultima_atualizacao")}
-                  >
-                    <div className="flex items-center">
-                      Atualizado em
-                      <span className="ml-1">
-                        {sortField === "data_ultima_atualizacao" && (sortDirection === "asc" ? "↑" : "↓")}
-                      </span>
-                    </div>
-                  </TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paginatedUsers.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={9} className="h-24 text-center">
-                      Nenhum usuário encontrado.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  paginatedUsers.map((user) => (
-                    <TableRow key={user?.id} className={user?.tipo?.toLowerCase() === "prestador" ? "opacity-75" : ""}>
-                      <TableCell className="font-medium">{user?.matricula}</TableCell>
-                      <TableCell>{user?.nome}</TableCell>
-                      <TableCell className="hidden md:table-cell">{user?.nome_usuario}</TableCell>
-                      <TableCell className="hidden md:table-cell">{user?.email}</TableCell>
-                      <TableCell>{getTipoBadge(user?.tipo)}</TableCell>
-                      <TableCell>{getStatusBadge(user?.status)}</TableCell>
-                      <TableCell className="hidden lg:table-cell">{typeof user?.grupo === 'object' ? user?.grupo?.nome : user?.grupo}</TableCell>
-                      <TableCell className="hidden lg:table-cell">{formatDate(user?.data_ultima_atualizacao)}</TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreHorizontal className="h-4 w-4" />
-                              <span className="sr-only">Ações</span>
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                              onClick={() => handleOpenEditModal(user?.id, user?.tipo)}
-                              className={user?.tipo?.toLowerCase() === "prestador" ? "cursor-not-allowed opacity-50" : ""}
-                            >
-                              <Edit className="mr-2 h-4 w-4" />
-                              Editar usuário
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              className="text-destructive"
-                              onClick={async () => await deleteUser.mutateAsync(user.id)}
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Excluir usuário
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+          {/* Search Bar */}
+          <div className="mb-6">
+            <div className="relative max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Buscar usuários..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-10 h-12 border-gray-200 focus:border-red-600 focus:ring-red-600"
+              />
+            </div>
           </div>
 
+          {/* Table */}
+          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-gray-50/50 hover:bg-gray-50/50">
+                    <TableHead className="cursor-pointer font-semibold text-gray-700 py-4" onClick={() => handleSort("matricula")}>
+                      <div className="flex items-center">
+                        Matrícula
+                        <span className="ml-1">{sortField === "matricula" && (sortDirection === "asc" ? "↑" : "↓")}</span>
+                      </div>
+                    </TableHead>
+                    <TableHead className="cursor-pointer font-semibold text-gray-700 py-4" onClick={() => handleSort("nome")}>
+                      <div className="flex items-center">
+                        Nome
+                        <span className="ml-1">{sortField === "nome" && (sortDirection === "asc" ? "↑" : "↓")}</span>
+                      </div>
+                    </TableHead>
+                    <TableHead className="cursor-pointer hidden md:table-cell font-semibold text-gray-700 py-4" onClick={() => handleSort("nome_usuario")}>
+                      <div className="flex items-center">
+                        Username
+                        <span className="ml-1">{sortField === "nome_usuario" && (sortDirection === "asc" ? "↑" : "↓")}</span>
+                      </div>
+                    </TableHead>
+                    <TableHead className="cursor-pointer hidden md:table-cell font-semibold text-gray-700 py-4" onClick={() => handleSort("email")}>
+                      <div className="flex items-center">
+                        Email
+                        <span className="ml-1">{sortField === "email" && (sortDirection === "asc" ? "↑" : "↓")}</span>
+                      </div>
+                    </TableHead>
+                    <TableHead className="cursor-pointer font-semibold text-gray-700 py-4" onClick={() => handleSort("tipo")}>
+                      <div className="flex items-center">
+                        Tipo
+                        <span className="ml-1">{sortField === "tipo" && (sortDirection === "asc" ? "↑" : "↓")}</span>
+                      </div>
+                    </TableHead>
+                    <TableHead className="cursor-pointer font-semibold text-gray-700 py-4" onClick={() => handleSort("status")}>
+                      <div className="flex items-center">
+                        Status
+                        <span className="ml-1">{sortField === "status" && (sortDirection === "asc" ? "↑" : "↓")}</span>
+                      </div>
+                    </TableHead>
+                    <TableHead className="cursor-pointer hidden lg:table-cell font-semibold text-gray-700 py-4" onClick={() => handleSort("grupo")}>
+                      <div className="flex items-center">
+                        Grupo
+                        <span className="ml-1">{sortField === "grupo" && (sortDirection === "asc" ? "↑" : "↓")}</span>
+                      </div>
+                    </TableHead>
+                    <TableHead
+                      className="cursor-pointer hidden lg:table-cell font-semibold text-gray-700 py-4"
+                      onClick={() => handleSort("data_ultima_atualizacao")}
+                    >
+                      <div className="flex items-center">
+                        Atualizado em
+                        <span className="ml-1">
+                          {sortField === "data_ultima_atualizacao" && (sortDirection === "asc" ? "↑" : "↓")}
+                        </span>
+                      </div>
+                    </TableHead>
+                    <TableHead className="text-right font-semibold text-gray-700 py-4">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paginatedUsers.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={9} className="text-center py-12">
+                        <div className="flex flex-col items-center gap-3">
+                          <div className="p-3 bg-gray-100 rounded-full">
+                            <UserPlus className="h-6 w-6 text-gray-400" />
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-semibold text-gray-900 mb-1">Nenhum usuário encontrado</h3>
+                            <p className="text-gray-600">Não há usuários cadastrados no sistema.</p>
+                          </div>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    paginatedUsers.map((user) => (
+                      <TableRow 
+                        key={user?.id} 
+                        className={`${user?.tipo?.toLowerCase() === "prestador" ? "opacity-75" : ""} hover:bg-gray-50/50 transition-colors`}
+                      >
+                        <TableCell className="font-medium text-gray-900 py-4">{user?.matricula}</TableCell>
+                        <TableCell className="py-4 text-gray-700">{user?.nome}</TableCell>
+                        <TableCell className="hidden md:table-cell py-4 text-gray-700">{user?.nome_usuario}</TableCell>
+                        <TableCell className="hidden md:table-cell py-4 text-gray-700">{user?.email}</TableCell>
+                        <TableCell className="py-4">{getTipoBadge(user?.tipo)}</TableCell>
+                        <TableCell className="py-4">{getStatusBadge(user?.status)}</TableCell>
+                        <TableCell className="hidden lg:table-cell py-4 text-gray-700">{typeof user?.grupo === 'object' ? user?.grupo?.nome : user?.grupo}</TableCell>
+                        <TableCell className="hidden lg:table-cell py-4 text-gray-700">{formatDate(user?.data_ultima_atualizacao)}</TableCell>
+                        <TableCell className="text-right py-4">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 p-0 text-gray-700 hover:text-gray-900 hover:bg-gray-100">
+                                <MoreHorizontal className="h-4 w-4" />
+                                <span className="sr-only">Ações</span>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() => handleOpenEditModal(user?.id, user?.tipo)}
+                                className={user?.tipo?.toLowerCase() === "prestador" ? "cursor-not-allowed opacity-50" : ""}
+                              >
+                                <Edit className="mr-2 h-4 w-4" />
+                                Editar usuário
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="text-destructive"
+                                onClick={async () => await deleteUser.mutateAsync(user.id)}
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Excluir usuário
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </Card>
+
+          {/* Pagination */}
           <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="text-sm text-muted-foreground">
+            <div className="text-sm text-gray-600 dark:text-gray-400">
               Exibindo {Math.min(perPage, filteredUsers.length)} de {filteredUsers.length} resultados
             </div>
 
@@ -334,7 +369,7 @@ export const Users = () => {
                 <PaginationItem>
                   <PaginationPrevious
                     onClick={() => handlePageChange(Math.max(1, page - 1))}
-                    className={page <= 1 ? "pointer-events-none opacity-50" : ""}
+                    className={`${page <= 1 ? "pointer-events-none opacity-50" : ""} hover:bg-red-100 dark:hover:bg-red-900/50`}
                   />
                 </PaginationItem>
 
@@ -343,14 +378,21 @@ export const Users = () => {
                 <PaginationItem>
                   <PaginationNext
                     onClick={() => handlePageChange(Math.min(totalPages, page + 1))}
-                    className={page >= totalPages ? "pointer-events-none opacity-50" : ""}
+                    className={`${page >= totalPages ? "pointer-events-none opacity-50" : ""} hover:bg-red-100 dark:hover:bg-red-900/50`}
                   />
                 </PaginationItem>
               </PaginationContent>
             </Pagination>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+
+        {/* Usando nosso novo componente UserModal */}
+        <UserModal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          userId={selectedUserId}
+        />
+      </div>
     </div>
   )
 }

@@ -1,4 +1,3 @@
-import { PageHeader } from "@/components/dashboard/page-header"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -6,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Plus, Search, MoreHorizontal, Eye, Edit, Trash2, Download, Printer } from "lucide-react"
+import { Plus, Search, MoreHorizontal, Eye, Edit, Trash2, DollarSign } from "lucide-react"
 import { useState } from "react"
 import { useGetFinanceiros } from "./hooks/use-get-financeiros"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -55,105 +54,154 @@ export const Financeiro = () => {
   }
 
   return (
-    <div className="container py-6 space-y-6">
-      <PageHeader
-        title="Financeiro"
-        description="Gerencie registros financeiros"
-      />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-red-50">
+      <div className="container mx-auto px-4 py-8">
+        {/* Header Section */}
+        <div className="mb-10">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-3 bg-red-100 rounded-xl">
+              <DollarSign className="h-8 w-8 text-red-700" />
+            </div>
+            <div>
+              <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
+                Gestão Financeira
+              </h1>
+              <p className="text-lg text-gray-600 mt-1">
+                Gerencie registros financeiros e pagamentos
+              </p>
+            </div>
+          </div>
+        </div>
 
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div className="flex w-full max-w-sm items-center space-x-2">
+        {/* Actions Section */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-red-100 rounded-lg">
+                <Search className="h-5 w-5 text-red-700" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-semibold text-gray-900">
+                  Registros Financeiros
+                </h2>
+                <p className="text-gray-600">
+                  Visualize e gerencie todos os registros financeiros
+                </p>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center gap-4">
+              <Button 
+                onClick={handleOpenCreateModal}
+                className="bg-red-700 hover:bg-red-800 text-white"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Novo Registro
+              </Button>
+            </div>
+          </div>
+
+          {/* Search Bar */}
+          <div className="mb-6">
+            <div className="relative max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                 placeholder="Buscar registros..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="h-9"
+                className="pl-10 h-12 border-gray-200 focus:border-red-600 focus:ring-red-600"
               />
-              <Button type="submit" size="sm">
-                <Search className="h-4 w-4" />
-                <span className="sr-only">Buscar</span>
-              </Button>
             </div>
-
-            <Button size="sm" onClick={handleOpenCreateModal}>
-              <Plus className="mr-2 h-4 w-4" />
-              Novo Registro
-            </Button>
           </div>
+        </div>
 
-          <div className="mt-6 rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Processo</TableHead>
-                  <TableHead>Competência</TableHead>
-                  <TableHead>Nº Pagamento</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead>Prestador</TableHead>
-                  <TableHead>Data Pagamento</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Valor Líquido</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoading ? (
-                  <TableRow>
-                    <TableCell colSpan={9} className="h-24 text-center">
-                      Carregando registros...
-                    </TableCell>
+        {/* Table Section */}
+        <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+          <CardContent className="p-6">
+            <div className="rounded-md">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-gray-50/50 hover:bg-gray-50/50">
+                    <TableHead className="font-semibold text-gray-700 py-4">Processo</TableHead>
+                    <TableHead className="font-semibold text-gray-700 py-4">Competência</TableHead>
+                    <TableHead className="font-semibold text-gray-700 py-4">Nº Pagamento</TableHead>
+                    <TableHead className="font-semibold text-gray-700 py-4">Tipo</TableHead>
+                    <TableHead className="font-semibold text-gray-700 py-4">Prestador</TableHead>
+                    <TableHead className="font-semibold text-gray-700 py-4">Data Pagamento</TableHead>
+                    <TableHead className="font-semibold text-gray-700 py-4">Status</TableHead>
+                    <TableHead className="font-semibold text-gray-700 py-4">Valor Líquido</TableHead>
+                    <TableHead className="text-right font-semibold text-gray-700 py-4">Ações</TableHead>
                   </TableRow>
-                ) : filteredFinanceiros.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={9} className="h-24 text-center">
-                      Nenhum registro encontrado.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredFinanceiros.map((financeiro) => (
-                    <TableRow key={financeiro.id}>
-                      <TableCell>{financeiro.processo}</TableCell>
-                      <TableCell>{financeiro.competencia}</TableCell>
-                      <TableCell>{financeiro.nro_pagamento}</TableCell>
-                      <TableCell>{financeiro.tipo}</TableCell>
-                      <TableCell>{financeiro.prestador.nome}</TableCell>
-                      <TableCell>{new Date(financeiro.data_pagamento).toLocaleDateString('pt-BR')}</TableCell>
-                      <TableCell>{getStatusBadge(financeiro.status)}</TableCell>
-                      <TableCell>{formatCurrency(Number(financeiro.valor))}</TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreHorizontal className="h-4 w-4" />
-                              <span className="sr-only">Ações</span>
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => setSelectedFinanceiro(financeiro.id)}>
-                              <Eye className="mr-2 h-4 w-4" />
-                              Ver itens
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleOpenEditModal(financeiro.id)}>
-                              <Edit className="mr-2 h-4 w-4" />
-                              Editar registro
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive">
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Excluir registro
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                </TableHeader>
+                <TableBody>
+                  {isLoading ? (
+                    <TableRow>
+                      <TableCell colSpan={9} className="text-center py-12">
+                        <div className="flex items-center justify-center gap-3">
+                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-red-700"></div>
+                          <span className="text-gray-600 font-medium">Carregando registros...</span>
+                        </div>
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+                  ) : filteredFinanceiros.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={9} className="text-center py-12">
+                        <div className="flex flex-col items-center gap-3">
+                          <div className="p-3 bg-gray-100 rounded-full">
+                            <DollarSign className="h-6 w-6 text-gray-400" />
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-semibold text-gray-900 mb-1">Nenhum registro encontrado</h3>
+                            <p className="text-gray-600">Não há registros financeiros cadastrados no sistema.</p>
+                          </div>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredFinanceiros.map((financeiro) => (
+                      <TableRow key={financeiro.id} className="hover:bg-gray-50/50 transition-colors">
+                        <TableCell className="font-medium text-gray-900 py-4">{financeiro.processo}</TableCell>
+                        <TableCell className="py-4 text-gray-700">{financeiro.competencia}</TableCell>
+                        <TableCell className="py-4 text-gray-700">{financeiro.nro_pagamento}</TableCell>
+                        <TableCell className="py-4 text-gray-700">{financeiro.tipo}</TableCell>
+                        <TableCell className="py-4 text-gray-700">{financeiro.prestador.nome}</TableCell>
+                        <TableCell className="py-4 text-gray-700">{new Date(financeiro.data_pagamento).toLocaleDateString('pt-BR')}</TableCell>
+                        <TableCell className="py-4">{getStatusBadge(financeiro.status)}</TableCell>
+                        <TableCell className="py-4 text-gray-700 font-medium">{formatCurrency(Number(financeiro.valor))}</TableCell>
+                        <TableCell className="text-right py-4">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 p-0 text-gray-700 hover:text-gray-900 hover:bg-gray-100">
+                                <MoreHorizontal className="h-4 w-4" />
+                                <span className="sr-only">Ações</span>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => setSelectedFinanceiro(financeiro.id)}>
+                                <Eye className="mr-2 h-4 w-4" />
+                                Ver itens
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleOpenEditModal(financeiro.id)}>
+                                <Edit className="mr-2 h-4 w-4" />
+                                Editar registro
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="text-destructive">
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Excluir registro
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       <Dialog open={!!selectedFinanceiro} onOpenChange={() => setSelectedFinanceiro(null)}>
         <DialogContent className="max-w-4xl">
@@ -205,79 +253,38 @@ export const Financeiro = () => {
 
                   <div className="space-y-4">
                     <h3 className="font-semibold">Itens Financeiros</h3>
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>CÓD.</TableHead>
-                          <TableHead>DESCRIÇÃO</TableHead>
-                          <TableHead>REFERÊNCIA</TableHead>
-                          <TableHead className="text-right">PROVENTOS</TableHead>
-                          <TableHead className="text-right">DESCONTOS</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {selectedFinanceiroData.itens.map((item: ItemFinanceiro) => (
-                          <TableRow key={item.codigo}>
-                            <TableCell>{item.codigo}</TableCell>
-                            <TableCell>{item.descricao}</TableCell>
-                            <TableCell>{item.referencia}</TableCell>
-                            <TableCell className="text-right">{formatCurrency(item.proventos)}</TableCell>
-                            <TableCell className="text-right">{formatCurrency(item.descontos)}</TableCell>
-                          </TableRow>
-                        ))}
-                        <TableRow className="bg-muted/50 font-medium">
-                          <TableCell colSpan={3} className="text-right">TOTAL</TableCell>
-                          <TableCell className="text-right">
-                            {formatCurrency(selectedFinanceiroData.itens.reduce((acc: number, item: ItemFinanceiro) => acc + item.proventos, 0))}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {formatCurrency(selectedFinanceiroData.itens.reduce((acc: number, item: ItemFinanceiro) => acc + item.descontos, 0))}
-                          </TableCell>
-                        </TableRow>
-                      </TableBody>
-                    </Table>
-
-                    <div className="mt-6 rounded-md bg-muted p-4">
-                      <div className="flex justify-between items-center">
-                        <span className="font-semibold">VALOR PARA EMISSÃO DA NOTA FISCAL:</span>
-                        <span className="font-semibold text-lg">
-                          {formatCurrency(Number(selectedFinanceiroData.valor))}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex justify-end gap-2">
-                      <Button variant="outline" onClick={() => setSelectedFinanceiro(null)}>
-                        Fechar
-                      </Button>
-                      <Button variant="outline">
-                        <Printer className="mr-2 h-4 w-4" />
-                        Imprimir
-                      </Button>
-                      <Button>
-                        <Download className="mr-2 h-4 w-4" />
-                        Baixar PDF
-                      </Button>
+                    <div className="rounded-md border">
+                                              <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>CÓD.</TableHead>
+                              <TableHead>DESCRIÇÃO</TableHead>
+                              <TableHead>REFERÊNCIA</TableHead>
+                              <TableHead className="text-right">PROVENTOS</TableHead>
+                              <TableHead className="text-right">DESCONTOS</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {selectedFinanceiroData.itens?.map((item: ItemFinanceiro) => (
+                              <TableRow key={item.codigo}>
+                                <TableCell>{item.codigo}</TableCell>
+                                <TableCell>{item.descricao}</TableCell>
+                                <TableCell>{item.referencia}</TableCell>
+                                <TableCell className="text-right">{formatCurrency(item.proventos)}</TableCell>
+                                <TableCell className="text-right">{formatCurrency(item.descontos)}</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
                     </div>
                   </div>
                 </>
               )}
             </TabsContent>
 
-            <TabsContent value="notas" className="min-h-[400px] flex flex-col items-center justify-center space-y-4 text-center">
-              <div className="border-2 border-dashed rounded-lg p-12 w-full max-w-xl">
-                <div className="flex flex-col items-center space-y-2">
-                  <div className="text-3xl">↑</div>
-                  <p className="text-sm text-muted-foreground">
-                    Arraste e solte sua nota fiscal aqui, ou clique para selecionar
-                  </p>
-                  <Button variant="outline" size="sm">
-                    Selecionar arquivo
-                  </Button>
-                </div>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  Formatos suportados: PDF, JPEG, PNG, TIFF, Excel, CSV, XML (Máx: 10MB)
-                </p>
+            <TabsContent value="notas" className="space-y-6">
+              <div className="text-center py-8">
+                <p className="text-gray-500">Funcionalidade de notas fiscais em desenvolvimento.</p>
               </div>
             </TabsContent>
           </Tabs>
