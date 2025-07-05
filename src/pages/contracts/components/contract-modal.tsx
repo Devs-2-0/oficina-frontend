@@ -282,7 +282,7 @@ export function ContractModal({ isOpen, onClose, contratoId }: ContractModalProp
                   <Label>Arquivo do Contrato</Label>
                   {arquivo ? (
                     <div className="flex items-center gap-2">
-                      <span className="text-sm text-muted-foreground">
+                      <span  title={selectedFile?.name} className="text-sm text-muted-foreground truncate">
                         {selectedFile?.name || "Arquivo anexado"}
                       </span>
                       <Button
