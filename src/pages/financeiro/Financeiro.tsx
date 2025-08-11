@@ -4,47 +4,66 @@ import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Plus, Search, MoreHorizontal, Eye, Edit, Trash2, DollarSign } from "lucide-react"
+import { Plus, Search, MoreHorizontal, Eye, Edit, Trash2, DollarSign, Download } from "lucide-react"
 import { useState } from "react"
 import { useGetFinanceiros } from "./hooks/use-get-financeiros"
+import { useImportarFinanceiros } from "./hooks/use-importar-financeiros"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { formatCurrency } from "@/lib/utils"
 import { FinanceiroModal } from "./components/financeiro-modal"
-import { Financeiro as FinanceiroType, ItemFinanceiro } from "@/types/financeiro"
+import { Financeiro as FinanceiroType, RegistroFinanceiro } from "@/types/financeiro"
+import { useAuth } from "@/contexts/auth-context"
+import { useToggleBaixa } from "./hooks/use-toggle-baixa"
+import { getFinanceiroByPrestadorPeriodo } from "@/http/services/financeiro/get-financeiro-by-prestador-periodo"
+import { useQueryClient } from "@tanstack/react-query"
+import { downloadNotaFiscal } from "@/http/services/financeiro/download-nota-fiscal"
 
 export const Financeiro = () => {
   const { data: financeiros = [], isLoading } = useGetFinanceiros()
   const [search, setSearch] = useState("")
-  const [selectedFinanceiro, setSelectedFinanceiro] = useState<number | null>(null)
+  const [selectedFinanceiroIndex, setSelectedFinanceiroIndex] = useState<number | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingFinanceiroId, setEditingFinanceiroId] = useState<number>()
+  const { usuario } = useAuth()
+  const importarMutation = useImportarFinanceiros()
+  const toggleBaixaMutation = useToggleBaixa()
+  const queryClient = useQueryClient()
 
-  const filteredFinanceiros = (financeiros as FinanceiroType[]).filter(
-    (financeiro) =>
-      financeiro.processo.toLowerCase().includes(search.toLowerCase()) ||
-      financeiro.prestador.nome.toLowerCase().includes(search.toLowerCase()) ||
-      financeiro.competencia.toLowerCase().includes(search.toLowerCase())
-  )
+  const normalizedSearch = (search || '').toLowerCase()
+  const filteredFinanceiros = (
+    Array.isArray(financeiros) ? (financeiros as FinanceiroType[]) : []
+  ).filter((financeiro) => {
+    const periodo = financeiro?.periodo ? String(financeiro.periodo).toLowerCase() : ''
+    const prestadorNome = financeiro?.prestador?.nome
+      ? String(financeiro.prestador.nome).toLowerCase()
+      : ''
+    const nomeArquivo = financeiro?.nome_arquivo ? String(financeiro.nome_arquivo).toLowerCase() : ''
 
-  const getStatusBadge = (status: string) => {
-    const styles = {
-      Pendente: 'bg-yellow-500',
-      Pago: 'bg-emerald-500',
-      Cancelado: 'bg-red-500'
-    }
-    return <Badge className={styles[status as keyof typeof styles]}>{status}</Badge>
+    return (
+      periodo.includes(normalizedSearch) ||
+      prestadorNome.includes(normalizedSearch) ||
+      nomeArquivo.includes(normalizedSearch)
+    )
+  })
+
+  const getBaixadoBadge = (baixado?: boolean) => {
+    const label = baixado ? 'Baixado' : 'Pendente'
+    const badgeClass = baixado ? 'bg-emerald-500' : 'bg-yellow-500'
+    return <Badge className={badgeClass}>{label}</Badge>
   }
 
-  const selectedFinanceiroData = (financeiros as FinanceiroType[]).find(f => f.id === selectedFinanceiro)
+  const selectedFinanceiroData =
+    selectedFinanceiroIndex !== null
+      ? (filteredFinanceiros as FinanceiroType[])[selectedFinanceiroIndex]
+      : undefined
 
   const handleOpenCreateModal = () => {
     setEditingFinanceiroId(undefined)
     setIsModalOpen(true)
   }
 
-  const handleOpenEditModal = (id: number) => {
-    setEditingFinanceiroId(id)
+  const handleOpenEditModal = (index: number) => {
+    setEditingFinanceiroId(index)
     setIsModalOpen(true)
   }
 
@@ -92,12 +111,19 @@ export const Financeiro = () => {
 
             {/* Action Buttons */}
             <div className="flex items-center gap-4">
-              <Button 
+              <Button
                 onClick={handleOpenCreateModal}
                 className="bg-red-700 hover:bg-red-800 text-white"
               >
                 <Plus className="mr-2 h-4 w-4" />
                 Novo Registro
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => usuario && importarMutation.mutate(usuario.id)}
+                disabled={importarMutation.isPending || !usuario}
+              >
+                {importarMutation.isPending ? 'Importando...' : 'Buscar Registros (Protheus)'}
               </Button>
             </div>
           </div>
@@ -123,14 +149,12 @@ export const Financeiro = () => {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-gray-50/50 hover:bg-gray-50/50">
-                    <TableHead className="font-semibold text-gray-700 py-4">Processo</TableHead>
-                    <TableHead className="font-semibold text-gray-700 py-4">Competência</TableHead>
-                    <TableHead className="font-semibold text-gray-700 py-4">Nº Pagamento</TableHead>
-                    <TableHead className="font-semibold text-gray-700 py-4">Tipo</TableHead>
                     <TableHead className="font-semibold text-gray-700 py-4">Prestador</TableHead>
-                    <TableHead className="font-semibold text-gray-700 py-4">Data Pagamento</TableHead>
-                    <TableHead className="font-semibold text-gray-700 py-4">Status</TableHead>
-                    <TableHead className="font-semibold text-gray-700 py-4">Valor Líquido</TableHead>
+                    <TableHead className="font-semibold text-gray-700 py-4">Período</TableHead>
+                    <TableHead className="font-semibold text-gray-700 py-4">Baixado</TableHead>
+                    <TableHead className="font-semibold text-gray-700 py-4">Data de Baixa</TableHead>
+                    <TableHead className="font-semibold text-gray-700 py-4">Nome do Arquivo</TableHead>
+                    <TableHead className="font-semibold text-gray-700 py-4">Registros</TableHead>
                     <TableHead className="text-right font-semibold text-gray-700 py-4">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -159,16 +183,14 @@ export const Financeiro = () => {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filteredFinanceiros.map((financeiro) => (
-                      <TableRow key={financeiro.id} className="hover:bg-gray-50/50 transition-colors">
-                        <TableCell className="font-medium text-gray-900 py-4">{financeiro.processo}</TableCell>
-                        <TableCell className="py-4 text-gray-700">{financeiro.competencia}</TableCell>
-                        <TableCell className="py-4 text-gray-700">{financeiro.nro_pagamento}</TableCell>
-                        <TableCell className="py-4 text-gray-700">{financeiro.tipo}</TableCell>
-                        <TableCell className="py-4 text-gray-700">{financeiro.prestador.nome}</TableCell>
-                        <TableCell className="py-4 text-gray-700">{new Date(financeiro.data_pagamento).toLocaleDateString('pt-BR')}</TableCell>
-                        <TableCell className="py-4">{getStatusBadge(financeiro.status)}</TableCell>
-                        <TableCell className="py-4 text-gray-700 font-medium">{formatCurrency(Number(financeiro.valor))}</TableCell>
+                    filteredFinanceiros.map((financeiro, index) => (
+                      <TableRow key={`${financeiro.id_prestador}-${financeiro.periodo}`} className="hover:bg-gray-50/50 transition-colors">
+                        <TableCell className="py-4 text-gray-700">{financeiro.prestador?.nome ?? '-'}</TableCell>
+                        <TableCell className="font-medium text-gray-900 py-4">{financeiro.periodo ?? '-'}</TableCell>
+                        <TableCell className="py-4">{getBaixadoBadge(financeiro.baixado)}</TableCell>
+                        <TableCell className="py-4 text-gray-700">{financeiro.baixado_em ? new Date(financeiro.baixado_em as unknown as string).toLocaleDateString('pt-BR') : '-'}</TableCell>
+                        <TableCell className="py-4 text-gray-700">{financeiro.nome_arquivo ?? '-'}</TableCell>
+                        <TableCell className="py-4 text-gray-700">{financeiro.registros_financeiros?.length ?? 0}</TableCell>
                         <TableCell className="text-right py-4">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -178,11 +200,22 @@ export const Financeiro = () => {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => setSelectedFinanceiro(financeiro.id)}>
+                              <DropdownMenuItem onClick={() => setSelectedFinanceiroIndex(index)}>
                                 <Eye className="mr-2 h-4 w-4" />
                                 Ver itens
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleOpenEditModal(financeiro.id)}>
+                              <DropdownMenuItem
+                                disabled={!(financeiro.nome_arquivo && financeiro.caminho_arquivo)}
+                                onClick={() => {
+                                  if (financeiro.nome_arquivo && financeiro.caminho_arquivo) {
+                                    downloadNotaFiscal(financeiro.id_prestador, financeiro.periodo, financeiro.nome_arquivo || undefined)
+                                  }
+                                }}
+                              >
+                                <Download className="mr-2 h-4 w-4" />
+                                Download Nota
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleOpenEditModal(index)}>
                                 <Edit className="mr-2 h-4 w-4" />
                                 Editar registro
                               </DropdownMenuItem>
@@ -203,8 +236,8 @@ export const Financeiro = () => {
         </Card>
       </div>
 
-      <Dialog open={!!selectedFinanceiro} onOpenChange={() => setSelectedFinanceiro(null)}>
-        <DialogContent className="max-w-4xl">
+      <Dialog open={selectedFinanceiroIndex !== null} onOpenChange={() => setSelectedFinanceiroIndex(null)}>
+        <DialogContent className="max-w-6xl">
           <DialogHeader>
             <DialogTitle>Detalhes do Registro Financeiro</DialogTitle>
             <DialogDescription>
@@ -212,82 +245,129 @@ export const Financeiro = () => {
             </DialogDescription>
           </DialogHeader>
 
-          <Tabs defaultValue="itens" className="w-full">
-            <TabsList className="w-full">
-              <TabsTrigger value="itens" className="flex-1">Itens Financeiros</TabsTrigger>
-              <TabsTrigger value="notas" className="flex-1">Notas Fiscais</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="itens" className="space-y-6">
-              {selectedFinanceiroData && (
-                <>
-                  <div className="grid grid-cols-2 gap-6">
+          <div className="space-y-6">
+            {selectedFinanceiroData && (
+              <>
+                <div className="grid grid-cols-2 gap-6">
                     <div className="space-y-4">
                       <h3 className="font-semibold">Informações do Registro</h3>
                       <div className="grid grid-cols-2 gap-2 text-sm">
-                        <div>Processo:</div>
-                        <div>{selectedFinanceiroData.processo}</div>
-                        <div>Competência:</div>
-                        <div>{selectedFinanceiroData.competencia}</div>
-                        <div>Nº Pagamento:</div>
-                        <div>{selectedFinanceiroData.nro_pagamento}</div>
-                        <div>Tipo:</div>
-                        <div>{selectedFinanceiroData.tipo}</div>
+                        <div>Prestador (ID):</div>
+                        <div>{selectedFinanceiroData.id_prestador}</div>
+                        <div>Período:</div>
+                        <div>{selectedFinanceiroData.periodo}</div>
+                        <div>Nome do Arquivo:</div>
+                        <div>{selectedFinanceiroData.nome_arquivo ?? '-'}</div>
                       </div>
                     </div>
 
                     <div className="space-y-4">
-                      <h3 className="font-semibold">Detalhes do Pagamento</h3>
+                      <h3 className="font-semibold">Detalhes</h3>
                       <div className="grid grid-cols-2 gap-2 text-sm">
                         <div>Prestador:</div>
-                        <div>{selectedFinanceiroData.prestador.nome}</div>
-                        <div>Data de Pagamento:</div>
-                        <div>{new Date(selectedFinanceiroData.data_pagamento).toLocaleDateString('pt-BR')}</div>
-                        <div>Status:</div>
-                        <div>{getStatusBadge(selectedFinanceiroData.status)}</div>
-                        <div>Valor Líquido:</div>
-                        <div>{formatCurrency(Number(selectedFinanceiroData.valor))}</div>
+                        <div>{selectedFinanceiroData.prestador?.nome ?? '-'}</div>
+                        <div className="flex items-center gap-2">Status:</div>
+                        <div className="flex items-center gap-3">
+                          {getBaixadoBadge(selectedFinanceiroData.baixado)}
+                          <Button
+                            className={selectedFinanceiroData.baixado ? 'bg-red-100 text-red-800 hover:bg-red-200' : 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'}
+                            size="sm"
+                            onClick={async () => {
+                              if (!selectedFinanceiroData) return
+                              const toBaixado = !selectedFinanceiroData.baixado
+                              await toggleBaixaMutation.mutateAsync({
+                                id_prestador: selectedFinanceiroData.id_prestador,
+                                periodo: selectedFinanceiroData.periodo,
+                                toBaixado,
+                              })
+                              // Refetch this specific Financeiro and update the modal data
+                              const refreshed = await getFinanceiroByPrestadorPeriodo(
+                                selectedFinanceiroData.id_prestador,
+                                selectedFinanceiroData.periodo
+                              )
+                              // Update cached list so table and modal reflect changes
+                              queryClient.setQueryData<FinanceiroType[] | undefined>(
+                                ['financeiros'],
+                                (old) =>
+                                  Array.isArray(old)
+                                    ? old.map((item) =>
+                                      item.id_prestador === refreshed.id_prestador && item.periodo === refreshed.periodo
+                                        ? (refreshed as FinanceiroType)
+                                        : item
+                                    )
+                                    : old
+                              )
+                            }}
+                            disabled={toggleBaixaMutation.isPending}
+                          >
+                            {toggleBaixaMutation.isPending
+                              ? 'Atualizando...'
+                              : selectedFinanceiroData.baixado
+                                ? 'Marcar como Pendente'
+                                : 'Marcar como Baixado'}
+                          </Button>
+                        </div>
+                        <div>Data de Baixa:</div>
+                        <div>{selectedFinanceiroData.baixado_em ? new Date(selectedFinanceiroData.baixado_em as unknown as string).toLocaleDateString('pt-BR') : '-'}</div>
                       </div>
                     </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <h3 className="font-semibold">Itens Financeiros</h3>
+                </div>
+                <div className="space-y-4">
+                    <h3 className="font-semibold">Registros Financeiros</h3>
                     <div className="rounded-md border">
-                                              <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>CÓD.</TableHead>
-                              <TableHead>DESCRIÇÃO</TableHead>
-                              <TableHead>REFERÊNCIA</TableHead>
-                              <TableHead className="text-right">PROVENTOS</TableHead>
-                              <TableHead className="text-right">DESCONTOS</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {selectedFinanceiroData.itens?.map((item: ItemFinanceiro) => (
-                              <TableRow key={item.codigo}>
-                                <TableCell>{item.codigo}</TableCell>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Verba</TableHead>
+                            <TableHead>Atividade</TableHead>
+                            <TableHead>Descrição</TableHead>
+                            <TableHead className="text-right">Bases</TableHead>
+                            <TableHead className="text-right">Proventos</TableHead>
+                            <TableHead className="text-right">Descontos</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {selectedFinanceiroData.registros_financeiros?.map((item: RegistroFinanceiro, idx: number) => {
+                            const numericValue = typeof item.valor === 'string' ? Number(item.valor) : item.valor
+                            const isProvento = item.tipo === '1'
+                            const isDesconto = item.tipo === '2'
+                            const isBaseProvento = item.tipo === '3'
+                            const isBaseDesconto = item.tipo === '4'
+                            const isBase = isBaseProvento || isBaseDesconto
+
+                            const basesValue = isBase ? numericValue : undefined
+                            const proventosValue = isProvento ? numericValue : undefined
+                            const descontosValue = isDesconto ? numericValue : undefined
+
+                            return (
+                              <TableRow key={`${item.cod_verba}-${idx}`}>
+                                <TableCell>{item.cod_verba}</TableCell>
+                                <TableCell>{item.atividade}</TableCell>
                                 <TableCell>{item.descricao}</TableCell>
-                                <TableCell>{item.referencia}</TableCell>
-                                <TableCell className="text-right">{formatCurrency(item.proventos)}</TableCell>
-                                <TableCell className="text-right">{formatCurrency(item.descontos)}</TableCell>
+                                <TableCell className="text-right">
+                                  {typeof basesValue === 'number' ? (
+                                    <span>
+                                      {formatCurrency(basesValue)}
+                                      <span className="ml-2 text-xs text-gray-500">
+                                        {isBaseProvento ? 'Base(Provento)' : isBaseDesconto ? 'Base(Desconto)' : ''}
+                                      </span>
+                                    </span>
+                                  ) : (
+                                    '-'
+                                  )}
+                                </TableCell>
+                                <TableCell className="text-right">{typeof proventosValue === 'number' ? formatCurrency(proventosValue) : '-'}</TableCell>
+                                <TableCell className="text-right">{typeof descontosValue === 'number' ? formatCurrency(descontosValue) : '-'}</TableCell>
                               </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
+                            )
+                          })}
+                        </TableBody>
+                      </Table>
                     </div>
                   </div>
-                </>
-              )}
-            </TabsContent>
-
-            <TabsContent value="notas" className="space-y-6">
-              <div className="text-center py-8">
-                <p className="text-gray-500">Funcionalidade de notas fiscais em desenvolvimento.</p>
-              </div>
-            </TabsContent>
-          </Tabs>
+              </>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
 

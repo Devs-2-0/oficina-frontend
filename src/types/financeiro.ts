@@ -1,32 +1,37 @@
 export interface Usuario {
   id: number
   nome: string
-  email: string
-  matricula: string
-  tipo: string
+  email?: string
+  matricula?: string
+  tipo?: string
   grupo?: string
 }
 
-export interface ItemFinanceiro {
-  codigo: string
+export interface RegistroFinanceiro {
+  cod_atividade: string
+  cod_verba: string
+  valor: string | number
+  periodo: string
+  roteiro: string
   descricao: string
-  referencia: string
-  proventos: number
-  descontos: number
+  tipo: string // '1' provento, '2' desconto, '3' base(provento), '4' base(desconto)
+  atividade: string
+  data_criacao: string | Date
+  data_ultima_atualizacao: string | Date
+  data_exclusao?: string | Date | null
 }
 
 export interface Financeiro {
-  id: number
-  processo: string
-  competencia: string
-  nro_pagamento: string
-  tipo: 'Pagamento' | 'Adiantamento' | 'Reembolso' | 'Outros'
-  valor: number
-  data_pagamento: string
-  status: string
-  observacoes?: string
+  id_prestador: number
+  periodo: string
   prestador: Usuario
-  data_criacao: Date
-  data_ultima_atualizacao: Date
-  itens: ItemFinanceiro[]
-} 
+  baixado?: boolean
+  baixado_em?: string | Date | null
+  baixado_por?: Usuario | null
+  registros_financeiros?: RegistroFinanceiro[]
+  nome_arquivo?: string | null
+  caminho_arquivo?: string | null
+  data_criacao: string | Date
+  data_ultima_atualizacao: string | Date
+  data_exclusao?: string | Date | null
+}
