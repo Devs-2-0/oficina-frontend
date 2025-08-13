@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Search, MoreHorizontal, Eye, Edit, Trash2, DollarSign, Download } from "lucide-react"
+import { Plus, Search, MoreHorizontal, Eye, Edit, Trash2, DollarSign, Download, FileText } from "lucide-react"
 import { useState } from "react"
 import { useGetFinanceiros } from "./hooks/use-get-financeiros"
 import { useImportarFinanceiros } from "./hooks/use-importar-financeiros"
@@ -17,6 +17,8 @@ import { useToggleBaixa } from "./hooks/use-toggle-baixa"
 import { getFinanceiroByPrestadorPeriodo } from "@/http/services/financeiro/get-financeiro-by-prestador-periodo"
 import { useQueryClient } from "@tanstack/react-query"
 import { downloadNotaFiscal } from "@/http/services/financeiro/download-nota-fiscal"
+import { generateFinanceiroPDF } from "@/lib/pdf-generator"
+import { toast } from "sonner"
 
 export const Financeiro = () => {
   const { data: financeiros = [], isLoading } = useGetFinanceiros()
@@ -125,6 +127,7 @@ export const Financeiro = () => {
               >
                 {importarMutation.isPending ? 'Importando...' : 'Buscar Registros (Protheus)'}
               </Button>
+              
             </div>
           </div>
 
@@ -204,6 +207,25 @@ export const Financeiro = () => {
                                 <Eye className="mr-2 h-4 w-4" />
                                 Ver itens
                               </DropdownMenuItem>
+                                                             <DropdownMenuItem
+                                 onClick={async () => {
+                                   const toastId = toast.info('Gerando PDF...')
+                                   try {
+                                     await new Promise<void>((resolve) => {
+                                       setTimeout(() => {
+                                         generateFinanceiroPDF(financeiro)
+                                         resolve()
+                                       }, 100)
+                                     })
+                                     toast.success('PDF gerado com sucesso!', { id: toastId })
+                                   } catch {
+                                     toast.error('Erro ao gerar PDF', { id: toastId })
+                                   }
+                                 }}
+                               >
+                                <FileText className="mr-2 h-4 w-4" />
+                                Gerar PDF
+                              </DropdownMenuItem>
                               <DropdownMenuItem
                                 disabled={!(financeiro.nome_arquivo && financeiro.caminho_arquivo)}
                                 onClick={() => {
@@ -239,10 +261,37 @@ export const Financeiro = () => {
       <Dialog open={selectedFinanceiroIndex !== null} onOpenChange={() => setSelectedFinanceiroIndex(null)}>
         <DialogContent className="max-w-6xl">
           <DialogHeader>
-            <DialogTitle>Detalhes do Registro Financeiro</DialogTitle>
-            <DialogDescription>
-              Informações detalhadas sobre o registro financeiro e seus itens.
-            </DialogDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <DialogTitle>Detalhes do Registro Financeiro</DialogTitle>
+                <DialogDescription>
+                  Informações detalhadas sobre o registro financeiro e seus itens.
+                </DialogDescription>
+              </div>
+              {selectedFinanceiroData && (
+                                 <Button
+                   variant="outline"
+                   onClick={async () => {
+                     const toastId = toast.info('Gerando PDF...')
+                     try {
+                       await new Promise<void>((resolve) => {
+                         setTimeout(() => {
+                           generateFinanceiroPDF(selectedFinanceiroData)
+                           resolve()
+                         }, 100)
+                       })
+                       toast.success('PDF gerado com sucesso!', { id: toastId })
+                     } catch {
+                       toast.error('Erro ao gerar PDF', { id: toastId })
+                     }
+                   }}
+                   className="border-blue-600 text-blue-600 hover:bg-blue-50"
+                 >
+                  <FileText className="mr-2 h-4 w-4" />
+                  Gerar PDF
+                </Button>
+              )}
+            </div>
           </DialogHeader>
 
           <div className="space-y-6">

@@ -8,10 +8,12 @@ import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { useState } from "react"
 import { useGetSolicitacoesFerias } from "./hooks/use-get-solicitacoes-ferias"
+import { useGetSolicitacoesAprovadas } from "./hooks/use-get-solicitacoes-aprovadas"
 import { FeriasSolicitacao } from "@/http/services/ferias/listar-solicitacoes-ferias"
 import { DetalhesFeriasModal } from "./components/detalhes-ferias"
 import { useAprovarSolicitacao } from "./hooks/use-aprovar-solicitacao"
 import { useReprovarSolicitacao } from "./hooks/use-reprovar-solicitacao"
+import { useRegistrarGozoFerias } from "./hooks/use-registrar-gozo-ferias"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
@@ -24,11 +26,15 @@ export const VacationAdmin = () => {
   const [detailsModalOpen, setDetailsModalOpen] = useState(false)
   const [rejectModalOpen, setRejectModalOpen] = useState(false)
   const [approveModalOpen, setApproveModalOpen] = useState(false)
+  const [gozoModalOpen, setGozoModalOpen] = useState(false)
   const [rejectReason, setRejectReason] = useState("")
+  const [gozoObservacoes, setGozoObservacoes] = useState("")
 
   const { data: solicitacoes, isLoading } = useGetSolicitacoesFerias()
+  const { data: solicitacoesAprovadas, isLoading: isLoadingAprovadas } = useGetSolicitacoesAprovadas()
   const { mutate: aprovarSolicitacao, isPending: isApproving } = useAprovarSolicitacao()
   const { mutate: reprovarSolicitacao, isPending: isRejecting } = useReprovarSolicitacao()
+  const { mutate: registrarGozo, isPending: isRegistrandoGozo } = useRegistrarGozoFerias()
 
   const getStatusBadge = (status: string) => {
     const styles = {
@@ -92,7 +98,35 @@ export const VacationAdmin = () => {
     setRejectModalOpen(true)
   }
 
+  const openGozoModal = (solicitacao: FeriasSolicitacao) => {
+    setSelectedRequest(solicitacao)
+    setGozoModalOpen(true)
+  }
+
+  const handleRegistrarGozo = () => {
+    if (!selectedRequest) return
+    
+    registrarGozo(
+      { 
+        id: selectedRequest.id, 
+        observacoes: gozoObservacoes.trim() || undefined 
+      },
+      {
+        onSuccess: () => {
+          setGozoModalOpen(false)
+          setGozoObservacoes("")
+          setSelectedRequest(null)
+        }
+      }
+    )
+  }
+
   const filteredRequests = solicitacoes?.filter(solicitacao => 
+    solicitacao.prestador.nome.toLowerCase().includes(search.toLowerCase()) ||
+    solicitacao.prestador.matricula.includes(search)
+  ) || []
+
+  const filteredAprovadas = solicitacoesAprovadas?.filter(solicitacao => 
     solicitacao.prestador.nome.toLowerCase().includes(search.toLowerCase()) ||
     solicitacao.prestador.matricula.includes(search)
   ) || []
@@ -324,6 +358,173 @@ export const VacationAdmin = () => {
               </div>
             </Card>
           </div>
+
+          {/* Próximas Férias Section */}
+          <div className="mb-8">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 bg-emerald-100 rounded-lg">
+                <Calendar className="h-5 w-5 text-emerald-700" />
+              </div>
+              <div className="flex-1">
+                <h2 className="text-2xl font-semibold text-gray-900">
+                  Próximas Férias
+                </h2>
+                <p className="text-gray-600">
+                  Solicitações aprovadas - registre o gozo de férias quando necessário
+                </p>
+              </div>
+            </div>
+
+            {/* Table */}
+            <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm relative">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-gray-50/50 hover:bg-gray-50/50">
+                      <TableHead className="font-semibold text-gray-700 py-4">Prestador</TableHead>
+                      <TableHead className="font-semibold text-gray-700 py-4">Matrícula</TableHead>
+                      <TableHead className="font-semibold text-gray-700 py-4">1º Período</TableHead>
+                      <TableHead className="font-semibold text-gray-700 py-4">Dias</TableHead>
+                      <TableHead className="font-semibold text-gray-700 py-4">2º Período</TableHead>
+                      <TableHead className="font-semibold text-gray-700 py-4">Dias</TableHead>
+                      <TableHead className="font-semibold text-gray-700 py-4">3º Período</TableHead>
+                      <TableHead className="font-semibold text-gray-700 py-4">Dias</TableHead>
+                      <TableHead className="font-semibold text-gray-700 py-4">Total</TableHead>
+                      <TableHead className="font-semibold text-gray-700 py-4">Status</TableHead>
+                      <TableHead className="font-semibold text-gray-700 py-4">Solicitado em</TableHead>
+                      <TableHead className="text-right font-semibold text-gray-700 py-4">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {isLoadingAprovadas ? (
+                      <TableRow>
+                        <TableCell colSpan={12} className="text-center py-12">
+                          <div className="flex items-center justify-center gap-3">
+                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-emerald-700"></div>
+                            <span className="text-gray-600 font-medium">Carregando solicitações aprovadas...</span>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ) : filteredAprovadas.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={12} className="text-center py-12">
+                          <div className="flex flex-col items-center gap-3">
+                            <div className="p-3 bg-gray-100 rounded-full">
+                              <Calendar className="h-6 w-6 text-gray-400" />
+                            </div>
+                            <div>
+                              <h3 className="text-lg font-semibold text-gray-900 mb-1">Nenhuma solicitação aprovada encontrada</h3>
+                              <p className="text-gray-600">Não há solicitações de férias aprovadas no momento.</p>
+                            </div>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredAprovadas.map((solicitacao) => (
+                        <TableRow key={solicitacao.id} className="hover:bg-gray-50/50 transition-colors">
+                          <TableCell className="font-medium text-gray-900 py-4">
+                            {solicitacao.prestador.nome}
+                          </TableCell>
+                          <TableCell className="py-4 text-gray-700">
+                            {solicitacao.prestador.matricula}
+                          </TableCell>
+                          <TableCell className="py-4">
+                            {solicitacao.data_inicio1 ? (
+                              <span className="text-gray-700">
+                                {format(new Date(solicitacao.data_inicio1), "dd/MM/yyyy", { locale: ptBR })}
+                              </span>
+                            ) : (
+                              <span className="text-gray-400">—</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="py-4">
+                            <span className="font-medium text-gray-900">
+                              {solicitacao.dias_corridos1 || 0}
+                            </span>
+                          </TableCell>
+                          <TableCell className="py-4">
+                            {solicitacao.data_inicio2 ? (
+                              <span className="text-gray-700">
+                                {format(new Date(solicitacao.data_inicio2), "dd/MM/yyyy", { locale: ptBR })}
+                              </span>
+                            ) : (
+                              <span className="text-gray-400">—</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="py-4">
+                            <span className="font-medium text-gray-900">
+                              {solicitacao.dias_corridos2 || 0}
+                            </span>
+                          </TableCell>
+                          <TableCell className="py-4">
+                            {solicitacao.data_inicio3 ? (
+                              <span className="text-gray-700">
+                                {format(new Date(solicitacao.data_inicio3), "dd/MM/yyyy", { locale: ptBR })}
+                              </span>
+                            ) : (
+                              <span className="text-gray-400">—</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="py-4">
+                            <span className="font-medium text-gray-900">
+                              {solicitacao.dias_corridos3 || 0}
+                            </span>
+                          </TableCell>
+                          <TableCell className="py-4">
+                            <Badge variant="secondary" className="font-semibold text-gray-900 bg-emerald-100 border-emerald-200">
+                              {calculateTotalDays(solicitacao)} dias
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="py-4">
+                            {getStatusBadge(solicitacao.status)}
+                          </TableCell>
+                          <TableCell className="py-4 text-gray-700">
+                            {format(new Date(solicitacao.data_criacao), "dd/MM/yyyy", { locale: ptBR })}
+                          </TableCell>
+                          <TableCell className="text-right py-4">
+                            <div className="flex items-center justify-end gap-1">
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleOpenDetails(solicitacao)}
+                                    className="h-8 w-8 p-0 text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent side="top">
+                                  <p>Ver detalhes</p>
+                                </TooltipContent>
+                              </Tooltip>
+                              
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="default"
+                                    size="sm"
+                                    onClick={() => openGozoModal(solicitacao)}
+                                    disabled={isRegistrandoGozo}
+                                    className="h-8 w-8 p-0 bg-blue-600 hover:bg-blue-700 text-white"
+                                  >
+                                    <Calendar className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent side="top">
+                                  <p>Registrar gozo de férias</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </Card>
+          </div>
         </div>
 
         {/* Modals */}
@@ -445,6 +646,69 @@ export const VacationAdmin = () => {
                 disabled={isRejecting || !rejectReason.trim()}
               >
                 {isRejecting ? 'Reprovando...' : 'Confirmar Reprovação'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Modal de Registro de Gozo de Férias */}
+        <Dialog open={gozoModalOpen} onOpenChange={setGozoModalOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <Calendar className="h-5 w-5 text-blue-700" />
+                </div>
+                <div>
+                  <DialogTitle>Registrar Gozo de Férias</DialogTitle>
+                  <DialogDescription>
+                    Registre o gozo de férias para esta solicitação aprovada
+                  </DialogDescription>
+                </div>
+              </div>
+            </DialogHeader>
+            
+            {selectedRequest && (
+              <div className="space-y-4">
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <h4 className="font-semibold text-gray-900 mb-2">Detalhes da Solicitação</h4>
+                  <div className="space-y-1 text-sm text-gray-600">
+                    <p><span className="font-medium">Prestador:</span> {selectedRequest.prestador.nome}</p>
+                    <p><span className="font-medium">Matrícula:</span> {selectedRequest.prestador.matricula}</p>
+                    <p><span className="font-medium">Total de dias:</span> {calculateTotalDays(selectedRequest)} dias</p>
+                    <p><span className="font-medium">Solicitado em:</span> {format(new Date(selectedRequest.data_criacao), "dd/MM/yyyy", { locale: ptBR })}</p>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="observacoes">Observações (opcional)</Label>
+                  <Textarea
+                    id="observacoes"
+                    placeholder="Digite observações sobre o gozo de férias..."
+                    value={gozoObservacoes}
+                    onChange={(e) => setGozoObservacoes(e.target.value)}
+                    rows={3}
+                  />
+                </div>
+                
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm text-blue-800">
+                    <strong>Atenção:</strong> Ao registrar o gozo de férias, você confirma que o prestador iniciou o período de férias aprovado.
+                  </p>
+                </div>
+              </div>
+            )}
+            
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setGozoModalOpen(false)}>
+                Cancelar
+              </Button>
+              <Button 
+                onClick={handleRegistrarGozo}
+                disabled={isRegistrandoGozo}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                {isRegistrandoGozo ? 'Registrando...' : 'Registrar Gozo'}
               </Button>
             </DialogFooter>
           </DialogContent>

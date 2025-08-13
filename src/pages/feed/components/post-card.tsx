@@ -6,13 +6,13 @@ import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { Postagem } from "@/types/postagem"
 import { useState } from "react"
-import { AspectRatio } from "@/components/ui/aspect-ratio"
 import { cn } from "@/lib/utils"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useDeletePost } from "../hooks/use-delete-post"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { useToast } from "@/hooks/use-toast"
 import { useNaoVisualizadas } from "../hooks/use-nao-visualizadas"
+import { PostImage } from "./post-image"
 
 interface PostCardProps {
   post: Postagem
@@ -20,7 +20,7 @@ interface PostCardProps {
 }
 
 export function PostCard({ post, onMarcarComoLido }: PostCardProps) {
-  const [imagemExpandida, setImagemExpandida] = useState<string | null>(null)
+  const [imagemExpandida, setImagemExpandida] = useState<ImagemPostagem | null>(null)
   const [confirmacaoAberta, setConfirmacaoAberta] = useState(false)
   const { mutateAsync: excluirPost } = useDeletePost()
   const { toast } = useToast()
@@ -76,21 +76,12 @@ export function PostCard({ post, onMarcarComoLido }: PostCardProps) {
           {post.imagens?.length > 0 && (
             <div className="grid grid-cols-2 gap-2">
               {post.imagens.map((imagem) => (
-                <AspectRatio key={imagem.id} ratio={16 / 9}>
-                  <button
-                    className={cn(
-                      "h-full w-full overflow-hidden rounded-md",
-                      post.imagens?.length === 1 && "col-span-2"
-                    )}
-                    onClick={() => setImagemExpandida(imagem.url)}
-                  >
-                    <img
-                      src={imagem.url}
-                      alt=""
-                      className="h-full w-full object-cover transition-transform hover:scale-105"
-                    />
-                  </button>
-                </AspectRatio>
+                <PostImage
+                  key={imagem.id}
+                  imagem={imagem}
+                  onClick={() => setImagemExpandida(imagem)}
+                  showSingleImageFullWidth={post.imagens?.length === 1}
+                />
               ))}
             </div>
           )}
@@ -107,12 +98,16 @@ export function PostCard({ post, onMarcarComoLido }: PostCardProps) {
       </Card>
 
       <Dialog open={!!imagemExpandida} onOpenChange={() => setImagemExpandida(null)}>
-        <DialogContent className="max-w-4xl">
-          <img
-            src={imagemExpandida!}
-            alt=""
-            className="h-full w-full rounded-lg object-contain"
-          />
+        <DialogContent className="max-w-4xl max-h-[90vh] p-0">
+          {imagemExpandida && (
+            <div className="relative w-full h-full">
+              <PostImage
+                imagem={imagemExpandida}
+                className="w-full h-full max-h-[80vh]"
+                isModal={true}
+              />
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 

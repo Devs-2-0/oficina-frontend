@@ -87,7 +87,7 @@ export function CriarPostDialog({ isOpen, onClose }: CriarPostDialogProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-4xl max-h-[85vh] flex flex-col overflow-hidden">
         <DialogHeader>
           <DialogTitle>Nova Publicação</DialogTitle>
           <DialogDescription>
@@ -96,78 +96,93 @@ export function CriarPostDialog({ isOpen, onClose }: CriarPostDialogProps) {
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="titulo">Título *</Label>
-            <Input
-              id="titulo"
-              value={titulo}
-              onChange={e => setTitulo(e.target.value)}
-              placeholder="Título da publicação"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="descricao">Descrição *</Label>
-            <Textarea
-              id="descricao"
-              value={mensagem}
-              onChange={e => setMensagem(e.target.value)}
-              placeholder="Descrição detalhada da publicação"
-              className="min-h-[100px]"
-            />
-          </div>
-
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <Label>Imagens</Label>
-              <span className="text-sm text-muted-foreground">
-                {imagens.length}/10 imagens
-              </span>
+          <div className="space-y-6 overflow-y-auto max-h-[60vh] pr-2" style={{ scrollbarWidth: 'thin', scrollbarColor: '#d1d5db #f3f4f6' }}>
+            <div className="space-y-2">
+              <Label htmlFor="titulo">Título *</Label>
+              <Input
+                id="titulo"
+                value={titulo}
+                onChange={e => setTitulo(e.target.value)}
+                placeholder="Título da publicação"
+              />
             </div>
 
-            {previews.length > 0 && (
-              <div className="grid grid-cols-2 gap-2">
-                {previews.map((preview, index) => (
-                  <div key={index} className="group relative">
-                    <img
-                      src={preview}
-                      alt=""
-                      className="aspect-video w-full rounded-md object-cover"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removerImagem(index)}
-                      className="absolute right-2 top-2 rounded-full bg-foreground/10 p-1 opacity-0 transition-opacity group-hover:opacity-100"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-                ))}
+            <div className="space-y-2">
+              <Label htmlFor="descricao">Descrição *</Label>
+              <Textarea
+                id="descricao"
+                value={mensagem}
+                onChange={e => setMensagem(e.target.value)}
+                placeholder="Descrição detalhada da publicação"
+                className="min-h-[100px]"
+              />
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label>Imagens</Label>
+                <span className="text-sm text-muted-foreground">
+                  {imagens.length}/10 imagens
+                </span>
               </div>
-            )}
 
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              className="hidden"
-              ref={fileInputRef}
-              onChange={handleImagemSelecionada}
-            />
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                disabled={imagens.length >= 10}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <ImagePlus className="mr-2 h-4 w-4" />
+                Adicionar imagem
+              </Button>
+              {previews.length > 0 && (
+                <div className="grid grid-cols-3 gap-3 min-h-[120px] w-full">
+                  {previews.map((preview, index) => (
+                    <div key={index} className="group relative w-full">
+                      <img
+                        src={preview}
+                        alt=""
+                        className="aspect-video w-full h-full rounded-md object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removerImagem(index)}
+                        className="absolute right-2 top-2 rounded-full bg-foreground/10 p-1 opacity-0 transition-opacity group-hover:opacity-100"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
 
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              disabled={imagens.length >= 10}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <ImagePlus className="mr-2 h-4 w-4" />
-              Adicionar imagem
-            </Button>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                ref={fileInputRef}
+                onChange={handleImagemSelecionada}
+              />
+
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                disabled={imagens.length >= 10}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <ImagePlus className="mr-2 h-4 w-4" />
+                Adicionar imagem
+              </Button>
+            </div>
+
+            {/* Add bottom padding to ensure content doesn't get cut off */}
+            <div className="h-6"></div>
           </div>
 
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-end gap-2 pt-4 border-t bg-white shadow-sm">
             <Button type="button" variant="outline" onClick={handleClose}>
               Cancelar
             </Button>
