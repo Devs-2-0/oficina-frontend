@@ -14,6 +14,7 @@ import { useDownloadArquivo } from "./hooks/use-download-arquivo"
 import { Loader2 } from "lucide-react"
 import { AxiosError } from "axios"
 import { useUpdateContrato } from "./hooks/use-update-contrato"
+import { PermissionGuard } from "@/components/ui/permission-guard"
 
 export const Contracts = () => {
   const { toast } = useToast()
@@ -239,13 +240,15 @@ export const Contracts = () => {
 
             {/* Action Buttons */}
             <div className="flex items-center gap-4">
-              <Button 
-                onClick={handleOpenCreateModal}
-                className="bg-red-700 hover:bg-red-800 text-white"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Novo Contrato
-              </Button>
+              <PermissionGuard permission="criar_contrato">
+                <Button 
+                  onClick={handleOpenCreateModal}
+                  className="bg-red-700 hover:bg-red-800 text-white"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Novo Contrato
+                </Button>
+              </PermissionGuard>
             </div>
           </div>
 
@@ -354,45 +357,55 @@ export const Contracts = () => {
                           {contract.data_ultima_atualizacao ? new Date(contract.data_ultima_atualizacao).toLocaleDateString("pt-BR") : 'Não definido'}
                         </TableCell>
                         <TableCell className="text-right py-4">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 p-0 text-gray-700 hover:text-gray-900 hover:bg-gray-100">
-                                <MoreHorizontal className="h-4 w-4" />
-                                <span className="sr-only">Ações</span>
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              {contract.arquivo ? (
-                                <DropdownMenuItem
-                                  onClick={() => downloadArquivo.mutate(contract.id)}
-                                  disabled={downloadArquivo.isPending}
-                                >
-                                  {downloadArquivo.isPending ? (
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                  ) : (
-                                    <Download className="mr-2 h-4 w-4" />
-                                  )}
-                                  {downloadArquivo.isPending ? 'Baixando...' : 'Baixar contrato'}
-                                </DropdownMenuItem>
-                              ) : (
-                                <DropdownMenuItem onClick={() => handleFileSelect(contract.id)}>
-                                  <Upload className="mr-2 h-4 w-4" />
-                                  Anexar contrato
-                                </DropdownMenuItem>
-                              )}
-                              <DropdownMenuItem onClick={() => handleOpenEditModal(contract.id)}>
-                                <Edit className="mr-2 h-4 w-4" />
-                                Editar contrato
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                className="text-destructive"
-                                onClick={() => handleDeleteContrato(contract.id)}
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Excluir contrato
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                          <PermissionGuard permissions={["visualizar_arquivo_contrato", "atualizar_arquivo_contrato", "atualizar_contrato", "excluir_contrato"]}>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 p-0 text-gray-700 hover:text-gray-900 hover:bg-gray-100">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                  <span className="sr-only">Ações</span>
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                {contract.arquivo ? (
+                                  <PermissionGuard permission="visualizar_arquivo_contrato">
+                                    <DropdownMenuItem
+                                      onClick={() => downloadArquivo.mutate(contract.id)}
+                                      disabled={downloadArquivo.isPending}
+                                    >
+                                      {downloadArquivo.isPending ? (
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                      ) : (
+                                        <Download className="mr-2 h-4 w-4" />
+                                      )}
+                                      {downloadArquivo.isPending ? 'Baixando...' : 'Baixar contrato'}
+                                    </DropdownMenuItem>
+                                  </PermissionGuard>
+                                ) : (
+                                  <PermissionGuard permission="atualizar_arquivo_contrato">
+                                    <DropdownMenuItem onClick={() => handleFileSelect(contract.id)}>
+                                      <Upload className="mr-2 h-4 w-4" />
+                                      Anexar contrato
+                                    </DropdownMenuItem>
+                                  </PermissionGuard>
+                                )}
+                                <PermissionGuard permission="atualizar_contrato">
+                                  <DropdownMenuItem onClick={() => handleOpenEditModal(contract.id)}>
+                                    <Edit className="mr-2 h-4 w-4" />
+                                    Editar contrato
+                                  </DropdownMenuItem>
+                                </PermissionGuard>
+                                <PermissionGuard permission="excluir_contrato">
+                                  <DropdownMenuItem
+                                    className="text-destructive"
+                                    onClick={() => handleDeleteContrato(contract.id)}
+                                  >
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Excluir contrato
+                                  </DropdownMenuItem>
+                                </PermissionGuard>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </PermissionGuard>
                         </TableCell>
                       </TableRow>
                     ))

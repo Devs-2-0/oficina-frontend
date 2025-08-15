@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Calendar, Clock, Plus } from "lucide-react"
 import { PeriodoElegivel } from "@/http/services/ferias/get-periodo-elegivel"
+import { PermissionGuard } from "@/components/ui/permission-guard"
 
 interface PeriodoElegivelCardProps {
   periodo: PeriodoElegivel
@@ -71,14 +72,16 @@ export function PeriodoElegivelCard({ periodo, onNovaSolicitacao }: PeriodoElegi
         </div>
 
         <div className="pt-2">
-          <Button 
-            onClick={() => onNovaSolicitacao(periodo)}
-            className="w-full bg-gray-900 hover:bg-gray-800 text-white border-0"
-            disabled={totalDiasDisponiveis <= 0}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Solicitar Férias
-          </Button>
+          <PermissionGuard permission="criar_solicitacao">
+            <Button 
+              onClick={() => onNovaSolicitacao(periodo)}
+              className="w-full bg-gray-900 hover:bg-gray-800 text-white border-0"
+              disabled={totalDiasDisponiveis <= 0}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Solicitar Férias
+            </Button>
+          </PermissionGuard>
         </div>
       </CardContent>
     </Card>

@@ -12,6 +12,7 @@ import { GroupModal } from "./components/group-modal"
 import { useGetGrupos } from './hooks/use-get-grupos'
 import { useDeleteGrupo } from './hooks/use-delete-grupo'
 import type { Grupo } from '@/http/services/grupo/listar-grupos'
+import { PermissionGuard } from "@/components/ui/permission-guard"
 
 export const Groups = () => {
   const { toast } = useToast()
@@ -191,13 +192,15 @@ export const Groups = () => {
                 Visualize e gerencie todos os grupos cadastrados no sistema
               </p>
             </div>
-            <Button 
-              onClick={handleOpenCreateModal}
-              className="bg-red-700 hover:bg-red-800 text-white border-red-700 hover:border-red-800"
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Novo Grupo
-            </Button>
+            <PermissionGuard permission="criar_grupo">
+              <Button 
+                onClick={handleOpenCreateModal}
+                className="bg-red-700 hover:bg-red-800 text-white border-red-700 hover:border-red-800"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Novo Grupo
+              </Button>
+            </PermissionGuard>
           </div>
 
           {/* Search Bar */}
@@ -265,27 +268,33 @@ export const Groups = () => {
                           </div>
                         </TableCell>
                         <TableCell className="text-right py-4">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 p-0 text-gray-700 hover:text-gray-900 hover:bg-gray-100">
-                                <MoreHorizontal className="h-4 w-4" />
-                                <span className="sr-only">Ações</span>
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => handleOpenEditModal(group.id)}>
-                                <Edit className="mr-2 h-4 w-4" />
-                                Editar grupo
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                className="text-destructive"
-                                onClick={() => handleDeleteGroup(group.id)}
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Excluir grupo
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                          <PermissionGuard permissions={["atualizar_grupo", "excluir_grupo"]}>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 p-0 text-gray-700 hover:text-gray-900 hover:bg-gray-100">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                  <span className="sr-only">Ações</span>
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <PermissionGuard permission="atualizar_grupo">
+                                  <DropdownMenuItem onClick={() => handleOpenEditModal(group.id)}>
+                                    <Edit className="mr-2 h-4 w-4" />
+                                    Editar grupo
+                                  </DropdownMenuItem>
+                                </PermissionGuard>
+                                <PermissionGuard permission="excluir_grupo">
+                                  <DropdownMenuItem
+                                    className="text-destructive"
+                                    onClick={() => handleDeleteGroup(group.id)}
+                                  >
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Excluir grupo
+                                  </DropdownMenuItem>
+                                </PermissionGuard>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </PermissionGuard>
                         </TableCell>
                       </TableRow>
                     ))

@@ -11,6 +11,7 @@ import { useState } from "react"
 import { useGetUsers } from "./hooks/use-get-users"
 import { UserModal } from "./components/user-modal"
 import { useDeleteUserMutation } from "./hooks/use-delete-user"
+import { PermissionGuard } from "@/components/ui/permission-guard"
 
 export const Users = () => {
   const { toast } = useToast()
@@ -211,13 +212,15 @@ export const Users = () => {
                 Visualize e gerencie todos os usuários cadastrados no sistema
               </p>
             </div>
-            <Button 
-              onClick={handleOpenCreateModal}
-              className="bg-red-700 hover:bg-red-800 text-white border-red-700 hover:border-red-800"
-            >
-              <UserPlus className="mr-2 h-4 w-4" />
-              Novo Usuário
-            </Button>
+            <PermissionGuard permission="criar_usuario">
+              <Button 
+                onClick={handleOpenCreateModal}
+                className="bg-red-700 hover:bg-red-800 text-white border-red-700 hover:border-red-800"
+              >
+                <UserPlus className="mr-2 h-4 w-4" />
+                Novo Usuário
+              </Button>
+            </PermissionGuard>
           </div>
 
           {/* Search Bar */}
@@ -325,30 +328,36 @@ export const Users = () => {
                         <TableCell className="hidden lg:table-cell py-4 text-gray-700">{typeof user?.grupo === 'object' ? user?.grupo?.nome : user?.grupo}</TableCell>
                         <TableCell className="hidden lg:table-cell py-4 text-gray-700">{formatDate(user?.data_ultima_atualizacao)}</TableCell>
                         <TableCell className="text-right py-4">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 p-0 text-gray-700 hover:text-gray-900 hover:bg-gray-100">
-                                <MoreHorizontal className="h-4 w-4" />
-                                <span className="sr-only">Ações</span>
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                onClick={() => handleOpenEditModal(user?.id, user?.tipo)}
-                                className={user?.tipo?.toLowerCase() === "prestador" ? "cursor-not-allowed opacity-50" : ""}
-                              >
-                                <Edit className="mr-2 h-4 w-4" />
-                                Editar usuário
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                className="text-destructive"
-                                onClick={async () => await deleteUser.mutateAsync(user.id)}
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Excluir usuário
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                          <PermissionGuard permissions={["atualizar_usuario", "excluir_usuario"]}>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 p-0 text-gray-700 hover:text-gray-900 hover:bg-gray-100">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                  <span className="sr-only">Ações</span>
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <PermissionGuard permission="atualizar_usuario">
+                                  <DropdownMenuItem
+                                    onClick={() => handleOpenEditModal(user?.id, user?.tipo)}
+                                    className={user?.tipo?.toLowerCase() === "prestador" ? "cursor-not-allowed opacity-50" : ""}
+                                  >
+                                    <Edit className="mr-2 h-4 w-4" />
+                                    Editar usuário
+                                  </DropdownMenuItem>
+                                </PermissionGuard>
+                                <PermissionGuard permission="excluir_usuario">
+                                  <DropdownMenuItem
+                                    className="text-destructive"
+                                    onClick={async () => await deleteUser.mutateAsync(user.id)}
+                                  >
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Excluir usuário
+                                  </DropdownMenuItem>
+                                </PermissionGuard>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </PermissionGuard>
                         </TableCell>
                       </TableRow>
                     ))

@@ -32,12 +32,17 @@ import {
 import { cn } from "@/lib/utils"
 import { useNaoVisualizadas } from "@/pages/feed/hooks/use-nao-visualizadas"
 import { useAuth } from "@/contexts/auth-context"
+import { usePermissions } from "@/hooks/use-permissions"
+import { PermissionGuard } from "@/components/ui/permission-guard"
 
 interface NavItem {
   title: string
   href: string
   icon: React.ElementType
   badge?: number
+  permission?: string
+  permissions?: string[]
+  requireAll?: boolean
 }
 
 
@@ -47,20 +52,56 @@ export function DashboardSidebar() {
   const [isOpen, setIsOpen] = useState(false)
   const [collapsed, setCollapsed] = useState(false)
   const { toast } = useToast()
-  const { logout, usuario } = useAuth()
+  const { logout, usuario, isLoading } = useAuth()
 
 
   const { quantidadeNaoVisualizadas } = useNaoVisualizadas()
 
   const navItems: NavItem[] = [
-    { title: "Feed", href: "/feed", icon: Home, badge: quantidadeNaoVisualizadas > 0 ? quantidadeNaoVisualizadas : undefined },
-    { title: "Contratos", href: "/contratos", icon: FileText },
-    { title: "Financeiro", href: "/financeiro", icon: Wallet },
-    { title: "Férias", href: "/ferias", icon: Calendar },
-    { title: "Solicitações de férias", href: "/solicitacoes-ferias", icon: CalendarDays },
-    { title: "Usuários", href: "/usuarios", icon: Users },
+    { 
+      title: "Feed", 
+      href: "/feed", 
+      icon: Home, 
+      badge: quantidadeNaoVisualizadas > 0 ? quantidadeNaoVisualizadas : undefined,
+      permission: "visualizar_post"
+    },
+    { 
+      title: "Contratos", 
+      href: "/contratos", 
+      icon: FileText,
+      permissions: ["visualizar_seu_contrato", "visualizar_todos_contratos"]
+    },
+    { 
+      title: "Financeiro", 
+      href: "/financeiro", 
+      icon: Wallet,
+      permissions: ["visualizar_seu_financeiro", "visualizar_todos_financeiros"]
+    },
+    { 
+      title: "Férias", 
+      href: "/ferias", 
+      icon: Calendar,
+      permissions: ["buscar_solicitacao", "buscar_periodo_matricula"]
+    },
+    { 
+      title: "Solicitações de férias", 
+      href: "/solicitacoes-ferias", 
+      icon: CalendarDays,
+      permission: "buscar_todas_solicitacoes"
+    },
+    { 
+      title: "Usuários", 
+      href: "/usuarios", 
+      icon: Users,
+      permission: "visualizar_usuario"
+    },
     // { title: "Prestadores", href: "/prestadores", icon: BarChart },
-    { title: "Grupos", href: "/grupos", icon: Group },
+    { 
+      title: "Grupos", 
+      href: "/grupos", 
+      icon: Group,
+      permission: "visualizar_grupo"
+    },
   ]
 
   useEffect(() => {
@@ -119,29 +160,41 @@ export function DashboardSidebar() {
 
         <ScrollArea className="flex-1 h-[calc(100vh-8rem)]">
           <nav className="flex flex-col gap-1 p-2">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                to={item.href}
-                className={cn(
-                  "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-sidebar-accent",
-                  location.pathname === item.href ? "bg-sidebar-accent font-medium" : "text-sidebar-foreground/80",
-                  collapsed && "justify-center px-2"
-                )}
-              >
-                <item.icon className="h-5 w-5" />
-                {!collapsed && <span>{item.title}</span>}
-                {item.badge && !collapsed ? (
-                  <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-white text-xs text-primary">
-                    {item.badge}
-                  </span>
-                ) : item.badge && collapsed ? (
-                  <span className="absolute top-0 right-0 flex h-4 w-4 items-center justify-center rounded-full bg-white text-xs text-primary">
-                    {item.badge}
-                  </span>
-                ) : null}
-              </Link>
-            ))}
+            {isLoading ? (
+              <div className="flex items-center justify-center py-4">
+                <div className="text-sidebar-foreground/60 text-sm">Carregando permissões...</div>
+              </div>
+            ) : (
+              navItems.map((item) => (
+                <PermissionGuard
+                  key={item.href}
+                  permission={item.permission as any}
+                  permissions={item.permissions as any}
+                  requireAll={item.requireAll}
+                >
+                  <Link
+                    to={item.href}
+                    className={cn(
+                      "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-sidebar-accent",
+                      location.pathname === item.href ? "bg-sidebar-accent font-medium" : "text-sidebar-foreground/80",
+                      collapsed && "justify-center px-2"
+                    )}
+                  >
+                    <item.icon className="h-5 w-5" />
+                    {!collapsed && <span>{item.title}</span>}
+                    {item.badge && !collapsed ? (
+                      <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-white text-xs text-primary">
+                        {item.badge}
+                      </span>
+                    ) : item.badge && collapsed ? (
+                      <span className="absolute top-0 right-0 flex h-4 w-4 items-center justify-center rounded-full bg-white text-xs text-primary">
+                        {item.badge}
+                      </span>
+                    ) : null}
+                  </Link>
+                </PermissionGuard>
+              ))
+            )}
           </nav>
         </ScrollArea>
 
@@ -163,7 +216,25 @@ export function DashboardSidebar() {
                     <div className="text-sm font-medium truncate">
                       {usuario?.nome}
                     </div>
+                    <div className="text-xs text-muted-foreground truncate">
+                      {usuario?.grupo?.nome}
+                    </div>
                   </div>
+                  <DropdownMenuSeparator />
+                                     <DropdownMenuLabel className="text-xs">
+                     Permissões ({isLoading ? '...' : usuario?.permissoes?.length || 0})
+                   </DropdownMenuLabel>
+                   <div className="px-2 py-1 max-h-32 overflow-y-auto">
+                     {isLoading ? (
+                       <div className="text-xs text-muted-foreground">Carregando...</div>
+                     ) : usuario?.permissoes?.map((permissao, index) => (
+                       <div key={index} className="text-xs text-muted-foreground py-0.5">
+                         {permissao}
+                       </div>
+                     )) || (
+                       <div className="text-xs text-muted-foreground">Nenhuma permissão</div>
+                     )}
+                   </div>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={logout}>
                     <LogOut className="mr-2 h-4 w-4" />
@@ -224,25 +295,37 @@ export function DashboardSidebar() {
 
           <ScrollArea className="flex-1 h-[calc(100vh-8rem)]">
             <nav className="flex flex-col gap-1 p-2">
-              {navItems.map((item) => (
-                <Link
-                  key={item.href}
-                  to={item.href}
-                  className={cn(
-                    "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-sidebar-accent",
-                    location.pathname === item.href ? "bg-sidebar-accent font-medium" : "text-sidebar-foreground/80"
-                  )}
-                  onClick={() => setIsOpen(false)}
-                >
-                  <item.icon className="h-5 w-5" />
-                  <span>{item.title}</span>
-                  {item.badge ? (
-                    <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-white text-xs text-primary">
-                      {item.badge}
-                    </span>
-                  ) : null}
-                </Link>
-              ))}
+              {isLoading ? (
+                <div className="flex items-center justify-center py-4">
+                  <div className="text-sidebar-foreground/60 text-sm">Carregando permissões...</div>
+                </div>
+              ) : (
+                navItems.map((item) => (
+                  <PermissionGuard
+                    key={item.href}
+                    permission={item.permission as any}
+                    permissions={item.permissions as any}
+                    requireAll={item.requireAll}
+                  >
+                    <Link
+                      to={item.href}
+                      className={cn(
+                        "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-sidebar-accent",
+                        location.pathname === item.href ? "bg-sidebar-accent font-medium" : "text-sidebar-foreground/80"
+                      )}
+                      onClick={() => setIsOpen(false)}
+                    >
+                      <item.icon className="h-5 w-5" />
+                      <span>{item.title}</span>
+                      {item.badge ? (
+                        <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-white text-xs text-primary">
+                          {item.badge}
+                        </span>
+                      ) : null}
+                    </Link>
+                  </PermissionGuard>
+                ))
+              )}
             </nav>
           </ScrollArea>
 
@@ -260,6 +343,10 @@ export function DashboardSidebar() {
                 <LogOut className="h-4 w-4" />
                 <span className="sr-only">Sair</span>
               </Button>
+            </div>
+            <div className="mt-2 text-xs text-sidebar-foreground/60">
+              <div>Grupo: {isLoading ? '...' : usuario?.grupo?.nome}</div>
+              <div>Permissões: {isLoading ? '...' : usuario?.permissoes?.length || 0}</div>
             </div>
           </div>
         </SheetContent>

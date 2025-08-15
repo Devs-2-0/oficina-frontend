@@ -19,6 +19,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 import { Calendar, Search, Users, CheckCircle, XCircle, Eye, AlertTriangle } from "lucide-react"
+import { PermissionGuard } from "@/components/ui/permission-guard"
 
 export const VacationAdmin = () => {
   const [search, setSearch] = useState("")
@@ -295,57 +296,61 @@ export const VacationAdmin = () => {
                           </TableCell>
                           <TableCell className="text-right py-4">
                             <div className="flex items-center justify-end gap-1">
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => handleOpenDetails(solicitacao)}
-                                    className="h-8 w-8 p-0 text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                                  >
-                                    <Eye className="h-4 w-4" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent side="top">
-                                  <p>Ver detalhes</p>
-                                </TooltipContent>
-                              </Tooltip>
+                              <PermissionGuard permission="buscar_solicitacao">
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleOpenDetails(solicitacao)}
+                                      className="h-8 w-8 p-0 text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                                    >
+                                      <Eye className="h-4 w-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent side="top">
+                                    <p>Ver detalhes</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </PermissionGuard>
                               
                               {solicitacao.status === 'PENDENTE' && (
                                 <>
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <Button
-                                        variant="default"
-                                        size="sm"
-                                        onClick={() => openApproveModal(solicitacao)}
-                                        disabled={isApproving}
-                                        className="h-8 w-8 p-0 bg-emerald-600 hover:bg-emerald-700 text-white"
-                                      >
-                                        <CheckCircle className="h-4 w-4" />
-                                      </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent side="top">
-                                      <p>Aprovar solicitação</p>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                  
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <Button
-                                        variant="destructive"
-                                        size="sm"
-                                        onClick={() => openRejectModal(solicitacao)}
-                                        disabled={isRejecting}
-                                        className="h-8 w-8 p-0 bg-red-600 hover:bg-red-700"
-                                      >
-                                        <XCircle className="h-4 w-4" />
-                                      </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent side="top" >
-                                      <p>Reprovar solicitação</p>
-                                    </TooltipContent>
-                                  </Tooltip>
+                                  <PermissionGuard permission="decidir_solicitacao">
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          variant="default"
+                                          size="sm"
+                                          onClick={() => openApproveModal(solicitacao)}
+                                          disabled={isApproving}
+                                          className="h-8 w-8 p-0 bg-emerald-600 hover:bg-emerald-700 text-white"
+                                        >
+                                          <CheckCircle className="h-4 w-4" />
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent side="top">
+                                        <p>Aprovar solicitação</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                    
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          variant="destructive"
+                                          size="sm"
+                                          onClick={() => openRejectModal(solicitacao)}
+                                          disabled={isRejecting}
+                                          className="h-8 w-8 p-0 bg-red-600 hover:bg-red-700"
+                                        >
+                                          <XCircle className="h-4 w-4" />
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent side="top" >
+                                        <p>Reprovar solicitação</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </PermissionGuard>
                                 </>
                               )}
                             </div>
@@ -483,38 +488,42 @@ export const VacationAdmin = () => {
                           </TableCell>
                           <TableCell className="text-right py-4">
                             <div className="flex items-center justify-end gap-1">
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => handleOpenDetails(solicitacao)}
-                                    className="h-8 w-8 p-0 text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                                  >
-                                    <Eye className="h-4 w-4" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent side="top">
-                                  <p>Ver detalhes</p>
-                                </TooltipContent>
-                              </Tooltip>
+                              <PermissionGuard permission="buscar_solicitacao">
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleOpenDetails(solicitacao)}
+                                      className="h-8 w-8 p-0 text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                                    >
+                                      <Eye className="h-4 w-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent side="top">
+                                    <p>Ver detalhes</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </PermissionGuard>
                               
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant="default"
-                                    size="sm"
-                                    onClick={() => openGozoModal(solicitacao)}
-                                    disabled={isRegistrandoGozo}
-                                    className="h-8 w-8 p-0 bg-blue-600 hover:bg-blue-700 text-white"
-                                  >
-                                    <Calendar className="h-4 w-4" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent side="top">
-                                  <p>Registrar gozo de férias</p>
-                                </TooltipContent>
-                              </Tooltip>
+                              <PermissionGuard permission="decidir_solicitacao">
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="default"
+                                      size="sm"
+                                      onClick={() => openGozoModal(solicitacao)}
+                                      disabled={isRegistrandoGozo}
+                                      className="h-8 w-8 p-0 bg-blue-600 hover:bg-blue-700 text-white"
+                                    >
+                                      <Calendar className="h-4 w-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent side="top">
+                                    <p>Registrar gozo de férias</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </PermissionGuard>
                             </div>
                           </TableCell>
                         </TableRow>

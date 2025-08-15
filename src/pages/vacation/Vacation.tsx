@@ -15,6 +15,7 @@ import { NovaSolicitacaoModal } from "./components/nova-solicitacao-modal"
 import { Calendar, Search, Clock, FileText } from "lucide-react"
 import { SolicitacaoPorMatricula } from "@/http/services/ferias/get-solicitacoes-por-matricula"
 import { PeriodoElegivel } from "@/http/services/ferias/get-periodo-elegivel"
+import { PermissionGuard } from "@/components/ui/permission-guard"
 
 export const Vacation = () => {
   const { usuario } = useAuth()
@@ -255,14 +256,16 @@ export const Vacation = () => {
                           {format(new Date(solicitacao.data_criacao), "dd/MM/yyyy", { locale: ptBR })}
                         </TableCell>
                         <TableCell className="text-right py-4">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleOpenDetails(solicitacao)}
-                            className="text-red-700 hover:text-red-800 hover:bg-red-50"
-                          >
-                            Ver Detalhes
-                          </Button>
+                          <PermissionGuard permission="buscar_solicitacao">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleOpenDetails(solicitacao)}
+                              className="text-red-700 hover:text-red-800 hover:bg-red-50"
+                            >
+                              Ver Detalhes
+                            </Button>
+                          </PermissionGuard>
                         </TableCell>
                       </TableRow>
                     ))

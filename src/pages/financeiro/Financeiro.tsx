@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Search, MoreHorizontal, Eye, Edit, Trash2, DollarSign, Download, FileText } from "lucide-react"
+import { Plus, Search, MoreHorizontal, Eye, Edit, DollarSign, Download, FileText } from "lucide-react"
 import { useState } from "react"
 import { useGetFinanceiros } from "./hooks/use-get-financeiros"
 import { useImportarFinanceiros } from "./hooks/use-importar-financeiros"
@@ -19,6 +19,7 @@ import { useQueryClient } from "@tanstack/react-query"
 import { downloadNotaFiscal } from "@/http/services/financeiro/download-nota-fiscal"
 import { generateFinanceiroPDF } from "@/lib/pdf-generator"
 import { toast } from "sonner"
+import { PermissionGuard } from "@/components/ui/permission-guard"
 
 export const Financeiro = () => {
   const { data: financeiros = [], isLoading } = useGetFinanceiros()
@@ -113,21 +114,24 @@ export const Financeiro = () => {
 
             {/* Action Buttons */}
             <div className="flex items-center gap-4">
-              <Button
-                onClick={handleOpenCreateModal}
-                className="bg-red-700 hover:bg-red-800 text-white"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Novo Registro
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => usuario && importarMutation.mutate(usuario.id)}
-                disabled={importarMutation.isPending || !usuario}
-              >
-                {importarMutation.isPending ? 'Importando...' : 'Buscar Registros (Protheus)'}
-              </Button>
-              
+              <PermissionGuard permission="importar_financeiro">
+                <Button
+                  onClick={handleOpenCreateModal}
+                  className="bg-red-700 hover:bg-red-800 text-white"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Novo Registro
+                </Button>
+              </PermissionGuard>
+              <PermissionGuard permission="importar_financeiro">
+                <Button
+                  variant="outline"
+                  onClick={() => usuario && importarMutation.mutate(usuario.id)}
+                  disabled={importarMutation.isPending || !usuario}
+                >
+                  {importarMutation.isPending ? 'Importando...' : 'Buscar Registros (Protheus)'}
+                </Button>
+              </PermissionGuard>
             </div>
           </div>
 
@@ -195,58 +199,64 @@ export const Financeiro = () => {
                         <TableCell className="py-4 text-gray-700">{financeiro.nome_arquivo ?? '-'}</TableCell>
                         <TableCell className="py-4 text-gray-700">{financeiro.registros_financeiros?.length ?? 0}</TableCell>
                         <TableCell className="text-right py-4">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 p-0 text-gray-700 hover:text-gray-900 hover:bg-gray-100">
-                                <MoreHorizontal className="h-4 w-4" />
-                                <span className="sr-only">Ações</span>
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => setSelectedFinanceiroIndex(index)}>
-                                <Eye className="mr-2 h-4 w-4" />
-                                Ver itens
-                              </DropdownMenuItem>
-                                                             <DropdownMenuItem
-                                 onClick={async () => {
-                                   const toastId = toast.info('Gerando PDF...')
-                                   try {
-                                     await new Promise<void>((resolve) => {
-                                       setTimeout(() => {
-                                         generateFinanceiroPDF(financeiro)
-                                         resolve()
-                                       }, 100)
-                                     })
-                                     toast.success('PDF gerado com sucesso!', { id: toastId })
-                                   } catch {
-                                     toast.error('Erro ao gerar PDF', { id: toastId })
-                                   }
-                                 }}
-                               >
-                                <FileText className="mr-2 h-4 w-4" />
-                                Gerar PDF
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                disabled={!(financeiro.nome_arquivo && financeiro.caminho_arquivo)}
-                                onClick={() => {
-                                  if (financeiro.nome_arquivo && financeiro.caminho_arquivo) {
-                                    downloadNotaFiscal(financeiro.id_prestador, financeiro.periodo, financeiro.nome_arquivo || undefined)
-                                  }
-                                }}
-                              >
-                                <Download className="mr-2 h-4 w-4" />
-                                Download Nota
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleOpenEditModal(index)}>
-                                <Edit className="mr-2 h-4 w-4" />
-                                Editar registro
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="text-destructive">
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Excluir registro
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                          <PermissionGuard permissions={["visualizar_todos_financeiros", "visualizar_nota_fiscal", "registrar_baixa"]}>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 p-0 text-gray-700 hover:text-gray-900 hover:bg-gray-100">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                  <span className="sr-only">Ações</span>
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <PermissionGuard permission="visualizar_todos_financeiros">
+                                  <DropdownMenuItem onClick={() => setSelectedFinanceiroIndex(index)}>
+                                    <Eye className="mr-2 h-4 w-4" />
+                                    Ver itens
+                                  </DropdownMenuItem>
+                                </PermissionGuard>
+                                <PermissionGuard permission="visualizar_todos_financeiros">
+                                  <DropdownMenuItem
+                                    onClick={async () => {
+                                      const toastId = toast.info('Gerando PDF...')
+                                      try {
+                                        await new Promise<void>((resolve) => {
+                                          setTimeout(() => {
+                                            generateFinanceiroPDF(financeiro)
+                                            resolve()
+                                          }, 100)
+                                        })
+                                        toast.success('PDF gerado com sucesso!', { id: toastId })
+                                      } catch {
+                                        toast.error('Erro ao gerar PDF', { id: toastId })
+                                      }
+                                    }}
+                                  >
+                                    <FileText className="mr-2 h-4 w-4" />
+                                    Gerar PDF
+                                  </DropdownMenuItem>
+                                </PermissionGuard>
+                                <PermissionGuard permission="visualizar_nota_fiscal">
+                                  <DropdownMenuItem
+                                    disabled={!(financeiro.nome_arquivo && financeiro.caminho_arquivo)}
+                                    onClick={() => {
+                                      if (financeiro.nome_arquivo && financeiro.caminho_arquivo) {
+                                        downloadNotaFiscal(financeiro.id_prestador, financeiro.periodo, financeiro.nome_arquivo || undefined)
+                                      }
+                                    }}
+                                  >
+                                    <Download className="mr-2 h-4 w-4" />
+                                    Download Nota
+                                  </DropdownMenuItem>
+                                </PermissionGuard>
+                                <PermissionGuard permission="registrar_baixa">
+                                  <DropdownMenuItem onClick={() => handleOpenEditModal(index)}>
+                                    <Edit className="mr-2 h-4 w-4" />
+                                    Editar registro
+                                  </DropdownMenuItem>
+                                </PermissionGuard>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </PermissionGuard>
                         </TableCell>
                       </TableRow>
                     ))

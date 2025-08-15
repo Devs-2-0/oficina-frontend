@@ -9,6 +9,7 @@ import { CriarPostDialog } from "./components/criar-post-dialog"
 import { Bell, MessageSquare, Plus } from "lucide-react"
 import { useVisualizarTodos } from "./hooks/use-visualizar-todos"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
+import { PermissionGuard } from "@/components/ui/permission-guard"
 
 export function Feed() {
   const [dialogAberto, setDialogAberto] = useState(false)
@@ -61,28 +62,32 @@ export function Feed() {
 
             {/* Action Buttons */}
             <div className="flex items-center gap-4">
-              <Button
-                variant="outline"
-                className="relative bg-white/80 backdrop-blur-sm border-gray-200 hover:bg-white hover:border-red-300"
-                onClick={() => setConfirmacaoAberta(true)}
-                disabled={!quantidadeNaoVisualizadas || visualizarTodosPending}
-              >
-                <Bell className="mr-2 h-4 w-4" />
-                {visualizarTodosPending ? "Marcando..." : "Marcar todos como lidos"}
-                {quantidadeNaoVisualizadas > 0 && (
-                  <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-[10px] text-white font-medium">
-                    {quantidadeNaoVisualizadas}
-                  </span>
-                )}
-              </Button>
+              <PermissionGuard permission="visualizar_post">
+                <Button
+                  variant="outline"
+                  className="relative bg-white/80 backdrop-blur-sm border-gray-200 hover:bg-white hover:border-red-300"
+                  onClick={() => setConfirmacaoAberta(true)}
+                  disabled={!quantidadeNaoVisualizadas || visualizarTodosPending}
+                >
+                  <Bell className="mr-2 h-4 w-4" />
+                  {visualizarTodosPending ? "Marcando..." : "Marcar todos como lidos"}
+                  {quantidadeNaoVisualizadas > 0 && (
+                    <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-[10px] text-white font-medium">
+                      {quantidadeNaoVisualizadas}
+                    </span>
+                  )}
+                </Button>
+              </PermissionGuard>
 
-              <Button 
-                onClick={() => setDialogAberto(true)}
-                className="bg-red-700 hover:bg-red-800 text-white"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Nova Publicação
-              </Button>
+              <PermissionGuard permission="criar_post">
+                <Button 
+                  onClick={() => setDialogAberto(true)}
+                  className="bg-red-700 hover:bg-red-800 text-white"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Nova Publicação
+                </Button>
+              </PermissionGuard>
             </div>
           </div>
         </div>
@@ -147,13 +152,15 @@ export function Feed() {
                         <h3 className="text-lg font-semibold text-gray-900 mb-2">Nenhuma publicação encontrada</h3>
                         <p className="text-gray-600">Seja o primeiro a criar uma publicação e compartilhar informações importantes!</p>
                       </div>
-                      <Button 
-                        onClick={() => setDialogAberto(true)}
-                        className="mt-4 bg-red-600 hover:bg-red-700 text-white"
-                      >
-                        <Plus className="mr-2 h-4 w-4" />
-                        Criar Primeira Publicação
-                      </Button>
+                      <PermissionGuard permission="criar_post">
+                        <Button 
+                          onClick={() => setDialogAberto(true)}
+                          className="mt-4 bg-red-600 hover:bg-red-700 text-white"
+                        >
+                          <Plus className="mr-2 h-4 w-4" />
+                          Criar Primeira Publicação
+                        </Button>
+                      </PermissionGuard>
                     </div>
                   </div>
                 </Card>
