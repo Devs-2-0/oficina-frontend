@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
-import { listarContratos } from '@/http/services/contrato/listar-contratos'
+import { listarContratos, ListarContratosParams } from '@/http/services/contrato/listar-contratos'
 
-export const useGetContratos = () => {
+export const useGetContratos = (params?: ListarContratosParams) => {
   return useQuery({
-    queryKey: ['contratos'],
-    queryFn: listarContratos,
+    queryKey: ['contratos', params],
+    queryFn: () => listarContratos(params),
   })
 } 

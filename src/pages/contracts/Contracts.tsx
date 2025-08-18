@@ -4,7 +4,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Input } from "@/components/ui/input"
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "sonner"
 import { Download, Edit, MoreHorizontal, Plus, Search, Trash2, Upload, FileText } from "lucide-react"
 import { useState } from "react"
 import { ContractModal } from "./components/contract-modal"
@@ -17,21 +17,30 @@ import { useUpdateContrato } from "./hooks/use-update-contrato"
 import { PermissionGuard } from "@/components/ui/permission-guard"
 
 export const Contracts = () => {
-  const { toast } = useToast()
-  const { data: contratos = [], isLoading } = useGetContratos()
-  const deleteContrato = useDeleteContrato()
-  const updateContrato = useUpdateContrato()
-  const downloadArquivo = useDownloadArquivo()
-
-  const [search, setSearch] = useState("")
   const [page, setPage] = useState(1)
-  const perPage = 10
+  const [limit] = useState(10)
+  const [search, setSearch] = useState("")
   const [sortField, setSortField] = useState("id")
   const [sortDirection, setSortDirection] = useState("asc")
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedContratoId, setSelectedContratoId] = useState<string>()
 
-  // Filter and sort contracts
+  const { data: contratosResponse, isLoading } = useGetContratos({
+    page,
+    limit
+  })
+
+  const contratos = contratosResponse?.data || []
+  const totalCount = contratosResponse?.total || 0
+  const totalPages = contratosResponse?.totalPages || 0
+  const hasNext = contratosResponse?.hasNext || false
+  const hasPrev = contratosResponse?.hasPrev || false
+
+  const deleteContrato = useDeleteContrato()
+  const updateContrato = useUpdateContrato()
+  const downloadArquivo = useDownloadArquivo()
+
+  // Filter contracts (client-side filtering for search)
   const filteredContracts = contratos.filter(
     (contract) =>
       String(contract.id).toLowerCase().includes(search.toLowerCase()) ||
@@ -50,10 +59,6 @@ export const Contracts = () => {
     return 0
   })
 
-  // Pagination
-  const totalPages = Math.ceil(sortedContracts.length / perPage)
-  const paginatedContracts = sortedContracts.slice((page - 1) * perPage, page * perPage)
-
   const handleSort = (field: string) => {
     const direction = field === sortField && sortDirection === "asc" ? "desc" : "asc"
     setSortField(field)
@@ -62,6 +67,12 @@ export const Contracts = () => {
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage)
+  }
+
+  // Reset page when search changes
+  const handleSearchChange = (value: string) => {
+    setSearch(value)
+    setPage(1) // Reset to first page when searching
   }
 
   const handleOpenCreateModal = () => {
@@ -93,10 +104,8 @@ export const Contracts = () => {
       reader.onload = async (e) => {
         const base64String = e.target?.result?.toString().split(',')[1]
         if (!base64String) {
-          toast({
-            title: "Erro ao processar arquivo",
-            description: "Não foi possível processar o arquivo selecionado.",
-            variant: "destructive",
+          toast.error("Erro ao processar arquivo", {
+            description: "Não foi possível processar o arquivo selecionado."
           })
           return
         }
@@ -106,26 +115,21 @@ export const Contracts = () => {
             id: contratoId,
             arquivo: base64String,
           })
-          toast({
-            title: "Arquivo anexado",
-            description: "O arquivo foi anexado ao contrato com sucesso.",
+          toast.success("Arquivo anexado", {
+            description: "O arquivo foi anexado ao contrato com sucesso."
           })
         } catch (error) {
           const axiosError = error as AxiosError<{ message: string }>
-          toast({
-            title: "Erro ao anexar arquivo",
-            description: axiosError.response?.data?.message || "Ocorreu um erro ao tentar anexar o arquivo ao contrato.",
-            variant: "destructive",
+          toast.error("Erro ao anexar arquivo", {
+            description: axiosError.response?.data?.message || "Ocorreu um erro ao tentar anexar o arquivo ao contrato."
           })
         }
       }
       reader.readAsDataURL(file)
     } catch (error) {
       const fileError = error as Error
-      toast({
-        title: "Erro ao processar arquivo",
-        description: fileError.message || "Ocorreu um erro ao tentar processar o arquivo.",
-        variant: "destructive",
+      toast.error("Erro ao processar arquivo", {
+        description: fileError.message || "Ocorreu um erro ao tentar processar o arquivo."
       })
     }
   }
@@ -259,7 +263,7 @@ export const Contracts = () => {
               <Input
                 placeholder="Buscar contratos..."
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => handleSearchChange(e.target.value)}
                 className="pl-10 h-12 border-gray-200 focus:border-red-600 focus:ring-red-600"
               />
             </div>
@@ -329,7 +333,7 @@ export const Contracts = () => {
                         </div>
                       </TableCell>
                     </TableRow>
-                  ) : paginatedContracts.length === 0 ? (
+                  ) : sortedContracts.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={7} className="text-center py-12">
                         <div className="flex flex-col items-center gap-3">
@@ -344,7 +348,7 @@ export const Contracts = () => {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    paginatedContracts.map((contract) => (
+                    sortedContracts.map((contract) => (
                       <TableRow key={contract.id} className="hover:bg-gray-50/50 transition-colors">
                         <TableCell className="font-medium text-gray-900 py-4">{contract.id}</TableCell>
                         <TableCell className="py-4 text-gray-700">{contract.prestador?.nome || 'Não definido'}</TableCell>
@@ -417,7 +421,7 @@ export const Contracts = () => {
             {/* Pagination */}
             <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-gray-200">
               <div className="text-sm text-gray-600">
-                Exibindo {Math.min(perPage, filteredContracts.length)} de {filteredContracts.length} resultados
+                Exibindo {sortedContracts.length} de {totalCount} resultados
               </div>
 
               <Pagination className="mx-auto sm:mx-0">
@@ -425,7 +429,7 @@ export const Contracts = () => {
                   <PaginationItem>
                     <PaginationPrevious
                       onClick={() => handlePageChange(Math.max(1, page - 1))}
-                      className={page <= 1 ? "pointer-events-none opacity-50" : ""}
+                      className={!hasPrev ? "pointer-events-none opacity-50" : ""}
                     />
                   </PaginationItem>
 
@@ -434,7 +438,7 @@ export const Contracts = () => {
                   <PaginationItem>
                     <PaginationNext
                       onClick={() => handlePageChange(Math.min(totalPages, page + 1))}
-                      className={page >= totalPages ? "pointer-events-none opacity-50" : ""}
+                      className={!hasNext ? "pointer-events-none opacity-50" : ""}
                     />
                   </PaginationItem>
                 </PaginationContent>
