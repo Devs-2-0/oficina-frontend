@@ -76,7 +76,7 @@ This document summarizes the implementation of a comprehensive permission system
 - **"Ver detalhes"**: `buscar_solicitacao`
 - **"Aprovar solicitação"**: `decidir_solicitacao`
 - **"Reprovar solicitação"**: `decidir_solicitacao`
-- **"Registrar gozo de férias"**: `decidir_solicitacao`
+- **"Registrar uso de férias"**: `decidir_solicitacao`
 
 ### Financeiro Page (`src/pages/financeiro/Financeiro.tsx`)
 - **"Novo Registro"**: `importar_financeiro`

@@ -13,7 +13,8 @@ import { FeriasSolicitacao } from "@/http/services/ferias/listar-solicitacoes-fe
 import { DetalhesFeriasModal } from "./components/detalhes-ferias"
 import { useAprovarSolicitacao } from "./hooks/use-aprovar-solicitacao"
 import { useReprovarSolicitacao } from "./hooks/use-reprovar-solicitacao"
-import { useRegistrarGozoFerias } from "./hooks/use-registrar-gozo-ferias"
+import { useRegistrarUsoFerias } from "./hooks/use-registrar-uso-ferias"
+import { useExcluirSolicitacao } from "./hooks/use-excluir-solicitacao"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
@@ -27,15 +28,17 @@ export const VacationAdmin = () => {
   const [detailsModalOpen, setDetailsModalOpen] = useState(false)
   const [rejectModalOpen, setRejectModalOpen] = useState(false)
   const [approveModalOpen, setApproveModalOpen] = useState(false)
-  const [gozoModalOpen, setGozoModalOpen] = useState(false)
+  const [usoModalOpen, setUsoModalOpen] = useState(false)
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [rejectReason, setRejectReason] = useState("")
-  const [gozoObservacoes, setGozoObservacoes] = useState("")
+  const [usoObservacoes, setUsoObservacoes] = useState("")
 
   const { data: solicitacoes, isLoading } = useGetSolicitacoesFerias()
   const { data: solicitacoesAprovadas, isLoading: isLoadingAprovadas } = useGetSolicitacoesAprovadas()
   const { mutate: aprovarSolicitacao, isPending: isApproving } = useAprovarSolicitacao()
   const { mutate: reprovarSolicitacao, isPending: isRejecting } = useReprovarSolicitacao()
-  const { mutate: registrarGozo, isPending: isRegistrandoGozo } = useRegistrarGozoFerias()
+  const { mutate: registrarUso, isPending: isRegistrandoUso } = useRegistrarUsoFerias()
+  const { mutate: excluirSolicitacao, isPending: isExcluindo } = useExcluirSolicitacao()
 
   const getStatusBadge = (status: string) => {
     const styles = {
@@ -99,27 +102,45 @@ export const VacationAdmin = () => {
     setRejectModalOpen(true)
   }
 
-  const openGozoModal = (solicitacao: FeriasSolicitacao) => {
+  const openUsoModal = (solicitacao: FeriasSolicitacao) => {
     setSelectedRequest(solicitacao)
-    setGozoModalOpen(true)
+    setUsoModalOpen(true)
   }
 
-  const handleRegistrarGozo = () => {
+  const openDeleteModal = (solicitacao: FeriasSolicitacao) => {
+    setSelectedRequest(solicitacao)
+    setDeleteModalOpen(true)
+  }
+
+  const handleRegistrarUso = () => {
     if (!selectedRequest) return
     
-    registrarGozo(
+    registrarUso(
       { 
-        id: selectedRequest.id, 
-        observacoes: gozoObservacoes.trim() || undefined 
+        solicitacaoId: selectedRequest.id, 
+        data: {
+          observacoes: usoObservacoes.trim() || undefined 
+        }
       },
       {
         onSuccess: () => {
-          setGozoModalOpen(false)
-          setGozoObservacoes("")
+          setUsoModalOpen(false)
+          setUsoObservacoes("")
           setSelectedRequest(null)
         }
       }
     )
+  }
+
+  const handleExcluirSolicitacao = () => {
+    if (!selectedRequest) return
+    
+    excluirSolicitacao(selectedRequest.id, {
+      onSuccess: () => {
+        setDeleteModalOpen(false)
+        setSelectedRequest(null)
+      }
+    })
   }
 
   const filteredRequests = solicitacoes?.filter(solicitacao => 
@@ -353,6 +374,25 @@ export const VacationAdmin = () => {
                                   </PermissionGuard>
                                 </>
                               )}
+                              
+                              <PermissionGuard permission="excluir_solicitacao">
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="destructive"
+                                      size="sm"
+                                      onClick={() => openDeleteModal(solicitacao)}
+                                      disabled={isExcluindo}
+                                      className="h-8 w-8 p-0 bg-red-600 hover:bg-red-700"
+                                    >
+                                      <AlertTriangle className="h-4 w-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent side="top">
+                                    <p>Excluir solicitação</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </PermissionGuard>
                             </div>
                           </TableCell>
                         </TableRow>
@@ -375,7 +415,7 @@ export const VacationAdmin = () => {
                   Próximas Férias
                 </h2>
                 <p className="text-gray-600">
-                  Solicitações aprovadas - registre o gozo de férias quando necessário
+                  Solicitações aprovadas - registre o uso de férias quando necessário
                 </p>
               </div>
             </div>
@@ -512,15 +552,34 @@ export const VacationAdmin = () => {
                                     <Button
                                       variant="default"
                                       size="sm"
-                                      onClick={() => openGozoModal(solicitacao)}
-                                      disabled={isRegistrandoGozo}
+                                      onClick={() => openUsoModal(solicitacao)}
+                                      disabled={isRegistrandoUso}
                                       className="h-8 w-8 p-0 bg-blue-600 hover:bg-blue-700 text-white"
                                     >
                                       <Calendar className="h-4 w-4" />
                                     </Button>
                                   </TooltipTrigger>
                                   <TooltipContent side="top">
-                                    <p>Registrar gozo de férias</p>
+                                    <p>Registrar uso de férias</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </PermissionGuard>
+                              
+                              <PermissionGuard permission="excluir_solicitacao">
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="destructive"
+                                      size="sm"
+                                      onClick={() => openDeleteModal(solicitacao)}
+                                      disabled={isExcluindo}
+                                      className="h-8 w-8 p-0 bg-red-600 hover:bg-red-700"
+                                    >
+                                      <AlertTriangle className="h-4 w-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent side="top">
+                                    <p>Excluir solicitação</p>
                                   </TooltipContent>
                                 </Tooltip>
                               </PermissionGuard>
@@ -660,8 +719,8 @@ export const VacationAdmin = () => {
           </DialogContent>
         </Dialog>
 
-        {/* Modal de Registro de Gozo de Férias */}
-        <Dialog open={gozoModalOpen} onOpenChange={setGozoModalOpen}>
+        {/* Modal de Registro de Uso de Férias */}
+        <Dialog open={usoModalOpen} onOpenChange={setUsoModalOpen}>
           <DialogContent className="max-w-md">
             <DialogHeader>
               <div className="flex items-center gap-3">
@@ -669,9 +728,9 @@ export const VacationAdmin = () => {
                   <Calendar className="h-5 w-5 text-blue-700" />
                 </div>
                 <div>
-                  <DialogTitle>Registrar Gozo de Férias</DialogTitle>
-                  <DialogDescription>
-                    Registre o gozo de férias para esta solicitação aprovada
+                                  <DialogTitle>Registrar Uso de Férias</DialogTitle>
+                <DialogDescription>
+                  Registre o uso de férias para esta solicitação aprovada
                   </DialogDescription>
                 </div>
               </div>
@@ -693,31 +752,84 @@ export const VacationAdmin = () => {
                   <Label htmlFor="observacoes">Observações (opcional)</Label>
                   <Textarea
                     id="observacoes"
-                    placeholder="Digite observações sobre o gozo de férias..."
-                    value={gozoObservacoes}
-                    onChange={(e) => setGozoObservacoes(e.target.value)}
+                                      placeholder="Digite observações sobre o uso de férias..."
+                  value={usoObservacoes}
+                  onChange={(e) => setUsoObservacoes(e.target.value)}
                     rows={3}
                   />
                 </div>
                 
                 <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
                   <p className="text-sm text-blue-800">
-                    <strong>Atenção:</strong> Ao registrar o gozo de férias, você confirma que o prestador iniciou o período de férias aprovado.
+                    <strong>Atenção:</strong> Ao registrar o uso de férias, você confirma que o prestador iniciou o período de férias aprovado.
                   </p>
                 </div>
               </div>
             )}
             
             <DialogFooter>
-              <Button variant="outline" onClick={() => setGozoModalOpen(false)}>
+              <Button variant="outline" onClick={() => setUsoModalOpen(false)}>
                 Cancelar
               </Button>
               <Button 
-                onClick={handleRegistrarGozo}
-                disabled={isRegistrandoGozo}
+                onClick={handleRegistrarUso}
+                disabled={isRegistrandoUso}
                 className="bg-blue-600 hover:bg-blue-700"
               >
-                {isRegistrandoGozo ? 'Registrando...' : 'Registrar Gozo'}
+                {isRegistrandoUso ? 'Registrando...' : 'Registrar Uso'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Modal de Confirmação de Exclusão */}
+        <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-red-100 rounded-lg">
+                  <AlertTriangle className="h-5 w-5 text-red-700" />
+                </div>
+                <div>
+                  <DialogTitle>Confirmar Exclusão</DialogTitle>
+                  <DialogDescription>
+                    Você está prestes a excluir uma solicitação de férias
+                  </DialogDescription>
+                </div>
+              </div>
+            </DialogHeader>
+            
+            {selectedRequest && (
+              <div className="space-y-4">
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <h4 className="font-semibold text-gray-900 mb-2">Detalhes da Solicitação</h4>
+                  <div className="space-y-1 text-sm text-gray-600">
+                    <p><span className="font-medium">Prestador:</span> {selectedRequest.prestador.nome}</p>
+                    <p><span className="font-medium">Matrícula:</span> {selectedRequest.prestador.matricula}</p>
+                    <p><span className="font-medium">Status:</span> {selectedRequest.status}</p>
+                    <p><span className="font-medium">Total de dias:</span> {calculateTotalDays(selectedRequest)} dias</p>
+                    <p><span className="font-medium">Solicitado em:</span> {format(new Date(selectedRequest.data_criacao), "dd/MM/yyyy", { locale: ptBR })}</p>
+                  </div>
+                </div>
+                
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-sm text-red-800">
+                    <strong>Atenção:</strong> Esta ação é irreversível. A solicitação será excluída permanentemente do sistema.
+                  </p>
+                </div>
+              </div>
+            )}
+            
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setDeleteModalOpen(false)}>
+                Cancelar
+              </Button>
+              <Button 
+                variant="destructive" 
+                onClick={handleExcluirSolicitacao}
+                disabled={isExcluindo}
+              >
+                {isExcluindo ? 'Excluindo...' : 'Confirmar Exclusão'}
               </Button>
             </DialogFooter>
           </DialogContent>

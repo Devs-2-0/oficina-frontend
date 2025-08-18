@@ -121,6 +121,11 @@ export function DashboardSidebar() {
     })
   }
 
+  // Don't render sidebar if still loading and no user
+  if (isLoading && !usuario) {
+    return null
+  }
+
   return (
     <>
       <aside
@@ -220,21 +225,6 @@ export function DashboardSidebar() {
                       {usuario?.grupo?.nome}
                     </div>
                   </div>
-                  <DropdownMenuSeparator />
-                                     <DropdownMenuLabel className="text-xs">
-                     Permissões ({isLoading ? '...' : usuario?.permissoes?.length || 0})
-                   </DropdownMenuLabel>
-                   <div className="px-2 py-1 max-h-32 overflow-y-auto">
-                     {isLoading ? (
-                       <div className="text-xs text-muted-foreground">Carregando...</div>
-                     ) : usuario?.permissoes?.map((permissao, index) => (
-                       <div key={index} className="text-xs text-muted-foreground py-0.5">
-                         {permissao}
-                       </div>
-                     )) || (
-                       <div className="text-xs text-muted-foreground">Nenhuma permissão</div>
-                     )}
-                   </div>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={logout}>
                     <LogOut className="mr-2 h-4 w-4" />

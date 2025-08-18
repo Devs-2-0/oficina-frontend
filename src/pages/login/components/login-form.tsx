@@ -10,7 +10,6 @@ import { useAuth } from "@/contexts/auth-context"
 
 export default function LoginForm() {
   const navigate = useNavigate()
-  const { setUsuario } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({
     username: "",
@@ -27,15 +26,16 @@ export default function LoginForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    const loggedUser = await login.mutateAsync({
-      nomeDeUsuario: formData.username,
-      senha: formData.password,
-    })
-
-
-    setUsuario(loggedUser.data.usuario)
-
-
+    try {
+      await login.mutateAsync({
+        nomeDeUsuario: formData.username,
+        senha: formData.password,
+      })
+    } catch (error) {
+      // O erro já é tratado no hook usePostLoginMutation
+      // Aqui apenas capturamos para evitar que o erro se propague
+      console.log('Erro capturado no formulário de login')
+    }
   }
 
   const togglePasswordVisibility = () => {

@@ -166,7 +166,7 @@ export function CriarPostDialog({ isOpen, onClose }: CriarPostDialogProps) {
                 onChange={handleImagemSelecionada}
               />
 
-              <Button
+              {previews.length > 0 && (<Button
                 type="button"
                 variant="outline"
                 className="w-full"
@@ -175,7 +175,7 @@ export function CriarPostDialog({ isOpen, onClose }: CriarPostDialogProps) {
               >
                 <ImagePlus className="mr-2 h-4 w-4" />
                 Adicionar imagem
-              </Button>
+              </Button>)}
             </div>
 
             {/* Add bottom padding to ensure content doesn't get cut off */}

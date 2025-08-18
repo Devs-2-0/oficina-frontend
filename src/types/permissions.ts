@@ -59,3 +59,5 @@ export interface UsuarioPermissoes {
   nome: string
   permissoes: Permissao[]
 }
+
+

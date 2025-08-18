@@ -139,9 +139,9 @@ export function CreatePostModal({ isOpen, onClose, onSubmit }: CreatePostModalPr
                     </Button>
                   </div>
                 ))}
-                <Button type="button" variant="outline" onClick={handleAddImage} className="w-full">
+                {imageUrls?.length && <Button type="button" variant="outline" onClick={handleAddImage} className="w-full">
                   Adicionar imagem
-                </Button>
+                </Button>}
               </div>
             </div>
           </div>

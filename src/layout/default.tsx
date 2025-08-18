@@ -1,6 +1,5 @@
 import type React from "react"
 import { DashboardSidebar } from "@/components/dashboard/sidebar"
-
 import { Outlet } from "react-router-dom"
 
 export default function DashboardLayout() {
@@ -11,6 +10,7 @@ export default function DashboardLayout() {
        
         <main className="flex-1 overflow-y-auto"><Outlet /></main>
       </div>
+
     </div>
   )
 }

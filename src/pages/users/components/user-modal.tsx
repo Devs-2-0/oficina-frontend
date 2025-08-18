@@ -2,7 +2,7 @@ import { z } from "zod";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { getUserById } from "@/http/services/users/get-user-by-id";
 import { useGetGrupos } from '../hooks/use-get-grupos';
@@ -16,7 +16,7 @@ import { usePostUserMutation } from "../hooks/use-post-user";
 import { useUpdateUserMutation } from "../hooks/use-patch-user";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-const userSchema = z.object({
+const createUserSchema = z.object({
   matricula: z.string().min(1, "Matrícula é obrigatória"),
   nome: z.string().min(1, "Nome é obrigatório"),
   identificacao: z.string().min(1, "Identificação é obrigatória"),
@@ -30,7 +30,23 @@ const userSchema = z.object({
   email: z.string().email("Email inválido"),
 });
 
-type UserFormData = z.infer<typeof userSchema>;
+const editUserSchema = z.object({
+  matricula: z.string().min(1, "Matrícula é obrigatória"),
+  nome: z.string().min(1, "Nome é obrigatório"),
+  identificacao: z.string().min(1, "Identificação é obrigatória"),
+  nome_usuario: z.string().min(1, "Nome de usuário é obrigatório"),
+  senha: z.string().optional(),
+  endereco: z.string().min(1, "Endereço é obrigatório"),
+  bairro: z.string().min(1, "Bairro é obrigatório"),
+  cidade: z.string().min(1, "Cidade é obrigatória"),
+  uf: z.string().min(1, "UF é obrigatória"),
+  grupo: z.string().min(1, "Grupo é obrigatório"),
+  email: z.string().email("Email inválido"),
+});
+
+type CreateUserFormData = z.infer<typeof createUserSchema>;
+type EditUserFormData = z.infer<typeof editUserSchema>;
+type UserFormData = CreateUserFormData | EditUserFormData;
 
 interface UserModalProps {
   isOpen: boolean;
@@ -39,7 +55,6 @@ interface UserModalProps {
 }
 
 export const UserModal = ({ isOpen, onClose, userId }: UserModalProps) => {
-  const { toast } = useToast();
   const isEditMode = !!userId;
   const postUser = usePostUserMutation();
   const updateUser = useUpdateUserMutation();
@@ -51,13 +66,16 @@ export const UserModal = ({ isOpen, onClose, userId }: UserModalProps) => {
     enabled: !!userId,
   });
 
+  // Check if user is a prestador (provider)
+  const isPrestador = userData?.tipo === 'PRESTADOR';
+
   const {
     control,
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
   } = useForm<UserFormData>({
-    resolver: zodResolver(userSchema),
+    resolver: zodResolver(isEditMode ? editUserSchema : createUserSchema),
     defaultValues: {
       matricula: "",
       nome: "",
@@ -73,7 +91,7 @@ export const UserModal = ({ isOpen, onClose, userId }: UserModalProps) => {
     },
   });
 
-  console.log(errors)
+
 
   useEffect(() => {
     if (userData && isEditMode) {
@@ -100,31 +118,47 @@ export const UserModal = ({ isOpen, onClose, userId }: UserModalProps) => {
   }, [userData, reset, isEditMode]);
 
   const handleSaveUser = async (data: UserFormData) => {
-    console.log(data)
-    if (isEditMode && userId) {
-      await updateUser.mutateAsync({
-        id: userId,
-        ...data,
-        grupo: Number(data.grupo)
-      });
-      toast({
-        title: "Usuário atualizado",
-        description: "Usuário atualizado com sucesso.",
-        duration: 3000,
-      });
+    if (isEditMode && userId && userData) {
+      if (isPrestador) {
+        // Para usuários Prestador, enviar todos os dados atuais + novo grupo
+        await updateUser.mutateAsync({ 
+          id: userId,
+          matricula: userData.matricula,
+          nome: userData.nome,
+          identificacao: userData.identificacao,
+          nome_usuario: userData.nome_usuario,
+          endereco: userData.endereco,
+          bairro: userData.bairro,
+          cidade: userData.cidade,
+          uf: userData.uf,
+          email: userData.email,
+          grupo: Number(data.grupo) // Apenas o grupo é atualizado
+        });
+        // Toast será exibido pelo hook
+      } else {
+        // Para outros usuários, atualizar todos os campos exceto senha se vazia
+        const { senha, ...dataWithoutPassword } = data;
+        const payload = senha ? { ...dataWithoutPassword, senha } : dataWithoutPassword;
+        
+        await updateUser.mutateAsync({ 
+          id: userId, 
+          ...payload, 
+          grupo: Number(data.grupo) 
+        });
+        // Toast será exibido pelo hook
+      }
     } else {
+      // Criação de novo usuário
+      const { senha, ...dataWithoutPassword } = data;
+      const payload = senha ? { ...dataWithoutPassword, senha } : dataWithoutPassword;
+      
       await postUser.mutateAsync({
-        ...data,
+        ...payload,
         grupo: Number(data.grupo)
       });
-      toast({
-        title: "Usuário criado",
-        description: "Novo usuário criado com sucesso.",
-        duration: 3000,
-      });
+      // Toast será exibido pelo hook
     }
     onClose();
-
   };
 
   const handleCancel = () => {
@@ -139,9 +173,19 @@ export const UserModal = ({ isOpen, onClose, userId }: UserModalProps) => {
           <DialogTitle>{isEditMode ? "Editar Usuário" : "Novo Usuário"}</DialogTitle>
           <DialogDescription>
             {isEditMode
-              ? "Edite as informações do usuário abaixo."
+              ? isPrestador 
+                ? "Usuário do tipo Prestador - apenas o grupo pode ser alterado."
+                : "Edite as informações do usuário abaixo."
               : "Preencha as informações para criar um novo usuário."}
           </DialogDescription>
+          {isEditMode && isPrestador && (
+            <div className="bg-amber-50 border border-amber-200 rounded-md p-3 mt-2">
+              <p className="text-sm text-amber-800">
+                <strong>Usuário do tipo Prestador:</strong> Por questões de segurança, apenas o campo "Grupo" pode ser alterado. 
+                Todos os outros campos estão bloqueados para edição.
+              </p>
+            </div>
+          )}
         </DialogHeader>
 
         {isEditMode && isLoadingUser ? (
@@ -159,7 +203,7 @@ export const UserModal = ({ isOpen, onClose, userId }: UserModalProps) => {
                     name="matricula"
                     control={control}
                     render={({ field }) => (
-                      <Input {...field} placeholder="Matrícula" />
+                      <Input {...field} placeholder="Matrícula" disabled={isEditMode && isPrestador} />
                     )}
                   />
                   {errors.matricula && <p className="text-sm text-red-500">{errors.matricula.message}</p>}
@@ -170,7 +214,7 @@ export const UserModal = ({ isOpen, onClose, userId }: UserModalProps) => {
                     name="nome"
                     control={control}
                     render={({ field }) => (
-                      <Input {...field} placeholder="Nome completo" />
+                      <Input {...field} placeholder="Nome completo" disabled={isEditMode && isPrestador} />
                     )}
                   />
                   {errors.nome && <p className="text-sm text-red-500">{errors.nome.message}</p>}
@@ -184,7 +228,7 @@ export const UserModal = ({ isOpen, onClose, userId }: UserModalProps) => {
                     name="identificacao"
                     control={control}
                     render={({ field }) => (
-                      <Input {...field} placeholder="CPF" />
+                      <Input {...field} placeholder="CPF" disabled={isEditMode && isPrestador} />
                     )}
                   />
                   {errors.identificacao && <p className="text-sm text-red-500">{errors.identificacao.message}</p>}
@@ -195,7 +239,7 @@ export const UserModal = ({ isOpen, onClose, userId }: UserModalProps) => {
                     name="nome_usuario"
                     control={control}
                     render={({ field }) => (
-                      <Input {...field} placeholder="Nome de usuário" />
+                      <Input {...field} placeholder="Nome de usuário" disabled={isEditMode && isPrestador} />
                     )}
                   />
                   {errors.nome_usuario && <p className="text-sm text-red-500">{errors.nome_usuario.message}</p>}
@@ -209,7 +253,7 @@ export const UserModal = ({ isOpen, onClose, userId }: UserModalProps) => {
                     name="email"
                     control={control}
                     render={({ field }) => (
-                      <Input {...field} type="email" placeholder="Email" />
+                      <Input {...field} type="email" placeholder="Email" disabled={isEditMode && isPrestador} />
                     )}
                   />
                   {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
@@ -220,7 +264,13 @@ export const UserModal = ({ isOpen, onClose, userId }: UserModalProps) => {
                     name="senha"
                     control={control}
                     render={({ field }) => (
-                      <Input {...field} type="password" placeholder={isEditMode ? "Deixe em branco para manter a senha atual" : "Senha"} />
+                      <Input 
+                        {...field} 
+                        type="password" 
+                        placeholder={isEditMode ? "Deixe em branco para manter a senha atual" : "Senha"} 
+                        disabled={isEditMode && isPrestador}
+                        required={!isEditMode}
+                      />
                     )}
                   />
                   {errors.senha && <p className="text-sm text-red-500">{errors.senha.message}</p>}
@@ -234,7 +284,7 @@ export const UserModal = ({ isOpen, onClose, userId }: UserModalProps) => {
                     name="endereco"
                     control={control}
                     render={({ field }) => (
-                      <Input {...field} placeholder="Endereço" />
+                      <Input {...field} placeholder="Endereço" disabled={isEditMode && isPrestador} />
                     )}
                   />
                   {errors.endereco && <p className="text-sm text-red-500">{errors.endereco.message}</p>}
@@ -245,7 +295,7 @@ export const UserModal = ({ isOpen, onClose, userId }: UserModalProps) => {
                     name="bairro"
                     control={control}
                     render={({ field }) => (
-                      <Input {...field} placeholder="Bairro" />
+                      <Input {...field} placeholder="Bairro" disabled={isEditMode && isPrestador} />
                     )}
                   />
                   {errors.bairro && <p className="text-sm text-red-500">{errors.bairro.message}</p>}
@@ -259,7 +309,7 @@ export const UserModal = ({ isOpen, onClose, userId }: UserModalProps) => {
                     name="cidade"
                     control={control}
                     render={({ field }) => (
-                      <Input {...field} placeholder="Cidade" />
+                      <Input {...field} placeholder="Cidade" disabled={isEditMode && isPrestador} />
                     )}
                   />
                   {errors.cidade && <p className="text-sm text-red-500">{errors.cidade.message}</p>}
@@ -270,7 +320,7 @@ export const UserModal = ({ isOpen, onClose, userId }: UserModalProps) => {
                     name="uf"
                     control={control}
                     render={({ field }) => (
-                      <Input {...field} placeholder="UF" maxLength={2} />
+                      <Input {...field} placeholder="UF" maxLength={2} disabled={isEditMode && isPrestador} />
                     )}
                   />
                   {errors.uf && <p className="text-sm text-red-500">{errors.uf.message}</p>}
@@ -284,6 +334,7 @@ export const UserModal = ({ isOpen, onClose, userId }: UserModalProps) => {
                       <Select
                         value={field.value}
                         onValueChange={field.onChange}
+                        disabled={false} // Grupo sempre pode ser editado
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Selecione um grupo" />

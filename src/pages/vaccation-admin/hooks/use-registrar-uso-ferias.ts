@@ -1,21 +1,23 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { registrarGozoFerias, RegistrarGozoFeriasRequest } from '@/http/services/ferias/registrar-gozo-ferias'
+import { registrarUsoFerias, RegistrarUsoFeriasRequest } from '@/http/services/ferias/registrar-uso-ferias'
 import { toast } from 'sonner'
 import { AxiosError } from 'axios'
 
-export function useRegistrarGozoFerias() {
+export function useRegistrarUsoFerias() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (data: RegistrarGozoFeriasRequest) => registrarGozoFerias(data),
+    mutationFn: ({ solicitacaoId, data }: { solicitacaoId: number; data: RegistrarUsoFeriasRequest }) => 
+      registrarUsoFerias(solicitacaoId, data),
     onSuccess: () => {
-      toast.success('Gozo de férias registrado com sucesso!')
+      toast.success('Uso de férias registrado com sucesso!')
       queryClient.invalidateQueries({ queryKey: ['solicitacoes-aprovadas'] })
     },
     onError: (error: AxiosError) => {
       const errorData = error?.response?.data as { message?: string }
-      const errorMessage = errorData?.message || 'Erro ao registrar gozo de férias'
+      const errorMessage = errorData?.message || 'Erro ao registrar uso de férias'
       toast.error(errorMessage)
     }
   })
 }
+
