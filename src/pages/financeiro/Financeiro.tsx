@@ -2,19 +2,22 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Search, MoreHorizontal, Eye, Edit, DollarSign, Download, FileText } from "lucide-react"
-import { useState } from "react"
+import { Plus, Search, MoreHorizontal, Eye, Edit, DollarSign, Download, FileText, Upload } from "lucide-react"
+import { useState, useEffect } from "react"
 import { useGetFinanceiros } from "./hooks/use-get-financeiros"
-import { useImportarFinanceiros } from "./hooks/use-importar-financeiros"
+import { useDebounce } from "@/hooks/use-debounce"
+import { useImportarTodosFinanceiros } from "./hooks/use-importar-todos-financeiros"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { formatCurrency } from "@/lib/utils"
 import { FinanceiroModal } from "./components/financeiro-modal"
+import { ImportarFinanceiroModal } from "./components/importar-financeiro-modal"
+import { UploadNotaModal } from "./components/upload-nota-modal"
 import { Financeiro as FinanceiroType, RegistroFinanceiro } from "@/types/financeiro"
-import { useAuth } from "@/contexts/auth-context"
 import { useToggleBaixa } from "./hooks/use-toggle-baixa"
-import { getFinanceiroByPrestadorPeriodo } from "@/http/services/financeiro/get-financeiro-by-prestador-periodo"
+
 import { useQueryClient } from "@tanstack/react-query"
 import { downloadNotaFiscal } from "@/http/services/financeiro/download-nota-fiscal"
 import { generateFinanceiroPDF } from "@/lib/pdf-generator"
@@ -22,32 +25,54 @@ import { toast } from "sonner"
 import { PermissionGuard } from "@/components/ui/permission-guard"
 
 export const Financeiro = () => {
-  const { data: financeiros = [], isLoading } = useGetFinanceiros()
-  const [search, setSearch] = useState("")
+  const [page, setPage] = useState(1)
+  const [limit] = useState(10)
+  const [nomePrestador, setNomePrestador] = useState("")
+  const [identificacaoPrestador, setIdentificacaoPrestador] = useState("")
+  const [periodo, setPeriodo] = useState("")
+
+  // Debounced values for search
+  const debouncedNomePrestador = useDebounce(nomePrestador, 500)
+  const debouncedIdentificacaoPrestador = useDebounce(identificacaoPrestador, 500)
+  const debouncedPeriodo = useDebounce(periodo, 500)
+  
+  // Reset page when debounced search values change
+  useEffect(() => {
+    setPage(1)
+  }, [debouncedNomePrestador, debouncedIdentificacaoPrestador, debouncedPeriodo])
+  
   const [selectedFinanceiroIndex, setSelectedFinanceiroIndex] = useState<number | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isImportarModalOpen, setIsImportarModalOpen] = useState(false)
+  const [isUploadNotaModalOpen, setIsUploadNotaModalOpen] = useState(false)
+  const [uploadNotaData, setUploadNotaData] = useState<{ idPrestador: number; periodo: string; prestadorNome?: string } | null>(null)
   const [editingFinanceiroId, setEditingFinanceiroId] = useState<number>()
-  const { usuario } = useAuth()
-  const importarMutation = useImportarFinanceiros()
+  const importarTodosMutation = useImportarTodosFinanceiros()
   const toggleBaixaMutation = useToggleBaixa()
   const queryClient = useQueryClient()
 
-  const normalizedSearch = (search || '').toLowerCase()
-  const filteredFinanceiros = (
-    Array.isArray(financeiros) ? (financeiros as FinanceiroType[]) : []
-  ).filter((financeiro) => {
-    const periodo = financeiro?.periodo ? String(financeiro.periodo).toLowerCase() : ''
-    const prestadorNome = financeiro?.prestador?.nome
-      ? String(financeiro.prestador.nome).toLowerCase()
-      : ''
-    const nomeArquivo = financeiro?.nome_arquivo ? String(financeiro.nome_arquivo).toLowerCase() : ''
-
-    return (
-      periodo.includes(normalizedSearch) ||
-      prestadorNome.includes(normalizedSearch) ||
-      nomeArquivo.includes(normalizedSearch)
-    )
+  const { data: financeirosResponse, isLoading } = useGetFinanceiros({
+    page,
+    limit,
+    nomePrestador: debouncedNomePrestador || undefined,
+    identificacaoPrestador: debouncedIdentificacaoPrestador || undefined,
+    periodo: debouncedPeriodo || undefined
   })
+
+  // Check if search is in progress (when input values differ from debounced values)
+  const isSearching = 
+    nomePrestador !== debouncedNomePrestador ||
+    identificacaoPrestador !== debouncedIdentificacaoPrestador ||
+    periodo !== debouncedPeriodo
+
+  const financeiros = financeirosResponse?.data || []
+  const totalCount = financeirosResponse?.total || 0
+  const totalPages = financeirosResponse?.totalPages || 0
+  const hasNext = financeirosResponse?.hasNext || 0
+  const hasPrev = financeirosResponse?.hasPrev || 0
+
+  // Usar dados diretamente do backend (filtros aplicados no servidor)
+  const filteredFinanceiros = Array.isArray(financeiros) ? (financeiros as FinanceiroType[]) : []
 
   const getBaixadoBadge = (baixado?: boolean) => {
     const label = baixado ? 'Baixado' : 'Pendente'
@@ -73,6 +98,113 @@ export const Financeiro = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false)
     setEditingFinanceiroId(undefined)
+  }
+
+  const handleOpenImportarModal = () => {
+    setIsImportarModalOpen(true)
+  }
+
+  const handleCloseImportarModal = () => {
+    setIsImportarModalOpen(false)
+  }
+
+  const handleOpenUploadNotaModal = (idPrestador: number, periodo: string, prestadorNome?: string) => {
+    setUploadNotaData({ idPrestador, periodo, prestadorNome })
+    setIsUploadNotaModalOpen(true)
+  }
+
+  const handleCloseUploadNotaModal = () => {
+    setIsUploadNotaModalOpen(false)
+    setUploadNotaData(null)
+  }
+
+  const handleCloseDetailModal = () => {
+    setSelectedFinanceiroIndex(null)
+    // Invalidate and refetch financeiros data when closing modal
+    queryClient.invalidateQueries({ queryKey: ['financeiros'] })
+  }
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage)
+  }
+
+  // Handle individual search field changes
+  const handleNomePrestadorChange = (value: string) => {
+    setNomePrestador(value)
+  }
+
+  const handleIdentificacaoPrestadorChange = (value: string) => {
+    setIdentificacaoPrestador(value)
+  }
+
+  const handlePeriodoChange = (value: string) => {
+    setPeriodo(value)
+  }
+
+  // Clear all search fields
+  const handleClearSearch = () => {
+    setNomePrestador("")
+    setIdentificacaoPrestador("")
+    setPeriodo("")
+    setPage(1)
+  }
+
+  // Generate pagination items
+  const renderPaginationItems = () => {
+    const currentPage = page
+    const items = []
+
+    // Always show first page
+    items.push(
+      <PaginationItem key="first">
+        <PaginationLink isActive={currentPage === 1} onClick={() => handlePageChange(1)}>
+          1
+        </PaginationLink>
+      </PaginationItem>,
+    )
+
+    // Show ellipsis if needed
+    if (currentPage > 3) {
+      items.push(
+        <PaginationItem key="ellipsis-1">
+          <PaginationEllipsis />
+        </PaginationItem>,
+      )
+    }
+
+    // Show current page and surrounding pages
+    for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
+      if (i === 1 || i === totalPages) continue // Skip first and last as they're always shown
+      items.push(
+        <PaginationItem key={i}>
+          <PaginationLink isActive={currentPage === i} onClick={() => handlePageChange(i)}>
+            {i}
+          </PaginationLink>
+        </PaginationItem>,
+      )
+    }
+
+    // Show ellipsis if needed
+    if (currentPage < totalPages - 2) {
+      items.push(
+        <PaginationItem key="ellipsis-2">
+          <PaginationEllipsis />
+        </PaginationItem>,
+      )
+    }
+
+    // Always show last page if there's more than one page
+    if (totalPages > 1) {
+      items.push(
+        <PaginationItem key="last">
+          <PaginationLink isActive={currentPage === totalPages} onClick={() => handlePageChange(totalPages)}>
+            {totalPages}
+          </PaginationLink>
+        </PaginationItem>,
+      )
+    }
+
+    return items
   }
 
   return (
@@ -107,7 +239,7 @@ export const Financeiro = () => {
                   Registros Financeiros
                 </h2>
                 <p className="text-gray-600">
-                  Visualize e gerencie todos os registros financeiros
+                  Visualize e gerencie todos os registros financeiros ({totalCount} registros)
                 </p>
               </div>
             </div>
@@ -126,26 +258,89 @@ export const Financeiro = () => {
               <PermissionGuard permission="importar_financeiro">
                 <Button
                   variant="outline"
-                  onClick={() => usuario && importarMutation.mutate(usuario.id)}
-                  disabled={importarMutation.isPending || !usuario}
+                  onClick={handleOpenImportarModal}
                 >
-                  {importarMutation.isPending ? 'Importando...' : 'Buscar Registros (Protheus)'}
+                  Importar por Prestador
+                </Button>
+              </PermissionGuard>
+              <PermissionGuard permission="importar_financeiro">
+                <Button
+                  variant="outline"
+                  onClick={() => importarTodosMutation.mutate()}
+                  disabled={importarTodosMutation.isPending}
+                >
+                  {importarTodosMutation.isPending ? 'Importando Todos...' : 'Importar Todos'}
                 </Button>
               </PermissionGuard>
             </div>
           </div>
 
-          {/* Search Bar */}
+          {/* Search Fields */}
           <div className="mb-6">
-            <div className="relative max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Buscar registros..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-10 h-12 border-gray-200 focus:border-red-600 focus:ring-red-600"
-              />
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Nome do Prestador..."
+                  value={nomePrestador}
+                  onChange={(e) => handleNomePrestadorChange(e.target.value)}
+                  className={`pl-10 h-12 border-gray-200 focus:border-red-600 focus:ring-red-600 ${
+                    nomePrestador !== debouncedNomePrestador ? 'border-orange-300 bg-orange-50' : ''
+                  }`}
+                />
+                {nomePrestador !== debouncedNomePrestador && (
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-500"></div>
+                  </div>
+                )}
+              </div>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Identificação do Prestador..."
+                  value={identificacaoPrestador}
+                  onChange={(e) => handleIdentificacaoPrestadorChange(e.target.value)}
+                  className={`pl-10 h-12 border-gray-200 focus:border-red-600 focus:ring-red-600 ${
+                    identificacaoPrestador !== debouncedIdentificacaoPrestador ? 'border-orange-300 bg-orange-50' : ''
+                  }`}
+                />
+                {identificacaoPrestador !== debouncedIdentificacaoPrestador && (
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-500"></div>
+                  </div>
+                )}
+              </div>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Período..."
+                  value={periodo}
+                  onChange={(e) => handlePeriodoChange(e.target.value)}
+                  className={`pl-10 h-12 border-gray-200 focus:border-red-600 focus:ring-red-600 ${
+                    periodo !== debouncedPeriodo ? 'border-orange-300 bg-orange-50' : ''
+                  }`}
+                />
+                {periodo !== debouncedPeriodo && (
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-500"></div>
+                  </div>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={handleClearSearch}
+                  className="h-12 px-4 border-gray-200 hover:border-red-600"
+                >
+                  Limpar
+                </Button>
+              </div>
             </div>
+            {isSearching && (
+              <p className="text-sm text-orange-600 mt-2">
+                ⏳ Pesquisando... (aguarde 0.5s)
+              </p>
+            )}
           </div>
         </div>
 
@@ -208,14 +403,15 @@ export const Financeiro = () => {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <PermissionGuard permission="visualizar_todos_financeiros">
+                                <PermissionGuard permissions={["visualizar_todos_financeiros", "visualizar_seu_financeiro"]}>
                                   <DropdownMenuItem onClick={() => setSelectedFinanceiroIndex(index)}>
                                     <Eye className="mr-2 h-4 w-4" />
                                     Ver itens
                                   </DropdownMenuItem>
                                 </PermissionGuard>
-                                <PermissionGuard permission="visualizar_todos_financeiros">
+                                <PermissionGuard permissions={["visualizar_todos_financeiros", "visualizar_seu_financeiro"]}>
                                   <DropdownMenuItem
+                                    disabled={!financeiro.baixado}
                                     onClick={async () => {
                                       const toastId = toast.info('Gerando PDF...')
                                       try {
@@ -248,6 +444,19 @@ export const Financeiro = () => {
                                     Download Nota
                                   </DropdownMenuItem>
                                 </PermissionGuard>
+                                <PermissionGuard permission="upload_nota_fiscal">
+                                  <DropdownMenuItem
+                                    disabled={!!financeiro.nome_arquivo}
+                                    onClick={() => handleOpenUploadNotaModal(
+                                      financeiro.id_prestador,
+                                      financeiro.periodo,
+                                      financeiro.prestador?.nome
+                                    )}
+                                  >
+                                    <Upload className="mr-2 h-4 w-4" />
+                                    Upload Nota
+                                  </DropdownMenuItem>
+                                </PermissionGuard>
                                 <PermissionGuard permission="registrar_baixa">
                                   <DropdownMenuItem onClick={() => handleOpenEditModal(index)}>
                                     <Edit className="mr-2 h-4 w-4" />
@@ -264,13 +473,40 @@ export const Financeiro = () => {
                 </TableBody>
               </Table>
             </div>
+
+            {/* Contador de registros e paginação */}
+            <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-gray-200">
+              <div className="text-sm text-gray-600">
+                Exibindo {financeiros.length} de {totalCount} registros
+              </div>
+
+              <Pagination className="mx-auto sm:mx-0">
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={() => handlePageChange(Math.max(1, page - 1))}
+                      className={!hasPrev ? "pointer-events-none opacity-50" : ""}
+                    />
+                  </PaginationItem>
+
+                  {renderPaginationItems()}
+
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() => handlePageChange(Math.min(totalPages, page + 1))}
+                      className={!hasNext ? "pointer-events-none opacity-50" : ""}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
           </CardContent>
         </Card>
       </div>
 
-      <Dialog open={selectedFinanceiroIndex !== null} onOpenChange={() => setSelectedFinanceiroIndex(null)}>
-        <DialogContent className="max-w-6xl">
-          <DialogHeader>
+      <Dialog open={selectedFinanceiroIndex !== null} onOpenChange={handleCloseDetailModal}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader className="flex-shrink-0">
             <div className="flex items-center justify-between">
               <div>
                 <DialogTitle>Detalhes do Registro Financeiro</DialogTitle>
@@ -279,151 +515,180 @@ export const Financeiro = () => {
                 </DialogDescription>
               </div>
               {selectedFinanceiroData && (
-                                 <Button
-                   variant="outline"
-                   onClick={async () => {
-                     const toastId = toast.info('Gerando PDF...')
-                     try {
-                       await new Promise<void>((resolve) => {
-                         setTimeout(() => {
-                           generateFinanceiroPDF(selectedFinanceiroData)
-                           resolve()
-                         }, 100)
-                       })
-                       toast.success('PDF gerado com sucesso!', { id: toastId })
-                     } catch {
-                       toast.error('Erro ao gerar PDF', { id: toastId })
-                     }
-                   }}
-                   className="border-blue-600 text-blue-600 hover:bg-blue-50"
-                 >
-                  <FileText className="mr-2 h-4 w-4" />
-                  Gerar PDF
-                </Button>
+                <div className="flex flex-col gap-2">
+                  <div className="flex gap-2">
+                    <PermissionGuard permission="upload_nota_fiscal">
+                      <Button
+                        variant="outline"
+                        disabled={!!selectedFinanceiroData.nome_arquivo}
+                        onClick={() => handleOpenUploadNotaModal(
+                          selectedFinanceiroData.id_prestador,
+                          selectedFinanceiroData.periodo,
+                          selectedFinanceiroData.prestador?.nome
+                        )}
+                        className="border-green-600 text-green-600 hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <Upload className="mr-2 h-4 w-4" />
+                        Upload Nota
+                      </Button>
+                    </PermissionGuard>
+                    <Button
+                      variant="outline"
+                      disabled={!selectedFinanceiroData.baixado}
+                      onClick={async () => {
+                        const toastId = toast.info('Gerando PDF...')
+                        try {
+                          await new Promise<void>((resolve) => {
+                            setTimeout(() => {
+                              generateFinanceiroPDF(selectedFinanceiroData)
+                              resolve()
+                            }, 100)
+                          })
+                          toast.success('PDF gerado com sucesso!', { id: toastId })
+                        } catch {
+                          toast.error('Erro ao gerar PDF', { id: toastId })
+                        }
+                      }}
+                      className="border-blue-600 text-blue-600 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <FileText className="mr-2 h-4 w-4" />
+                      Gerar PDF
+                    </Button>
+                  </div>
+                  {!selectedFinanceiroData.baixado && (
+                    <p className="text-xs text-amber-600">
+                      ⚠️ O PDF só pode ser gerado após o registro ser marcado como baixado.
+                    </p>
+                  )}
+                </div>
               )}
             </div>
           </DialogHeader>
 
-          <div className="space-y-6">
+          <div className="flex-1 overflow-y-auto space-y-6 pr-2">
             {selectedFinanceiroData && (
               <>
                 <div className="grid grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <h3 className="font-semibold">Informações do Registro</h3>
-                      <div className="grid grid-cols-2 gap-2 text-sm">
-                        <div>Prestador (ID):</div>
-                        <div>{selectedFinanceiroData.id_prestador}</div>
-                        <div>Período:</div>
-                        <div>{selectedFinanceiroData.periodo}</div>
-                        <div>Nome do Arquivo:</div>
-                        <div>{selectedFinanceiroData.nome_arquivo ?? '-'}</div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      <h3 className="font-semibold">Detalhes</h3>
-                      <div className="grid grid-cols-2 gap-2 text-sm">
-                        <div>Prestador:</div>
-                        <div>{selectedFinanceiroData.prestador?.nome ?? '-'}</div>
-                        <div className="flex items-center gap-2">Status:</div>
-                        <div className="flex items-center gap-3">
-                          {getBaixadoBadge(selectedFinanceiroData.baixado)}
-                          <Button
-                            className={selectedFinanceiroData.baixado ? 'bg-red-100 text-red-800 hover:bg-red-200' : 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'}
-                            size="sm"
-                            onClick={async () => {
-                              if (!selectedFinanceiroData) return
-                              const toBaixado = !selectedFinanceiroData.baixado
-                              await toggleBaixaMutation.mutateAsync({
-                                id_prestador: selectedFinanceiroData.id_prestador,
-                                periodo: selectedFinanceiroData.periodo,
-                                toBaixado,
-                              })
-                              // Refetch this specific Financeiro and update the modal data
-                              const refreshed = await getFinanceiroByPrestadorPeriodo(
-                                selectedFinanceiroData.id_prestador,
-                                selectedFinanceiroData.periodo
-                              )
-                              // Update cached list so table and modal reflect changes
-                              queryClient.setQueryData<FinanceiroType[] | undefined>(
-                                ['financeiros'],
-                                (old) =>
-                                  Array.isArray(old)
-                                    ? old.map((item) =>
-                                      item.id_prestador === refreshed.id_prestador && item.periodo === refreshed.periodo
-                                        ? (refreshed as FinanceiroType)
-                                        : item
-                                    )
-                                    : old
-                              )
-                            }}
-                            disabled={toggleBaixaMutation.isPending}
-                          >
-                            {toggleBaixaMutation.isPending
-                              ? 'Atualizando...'
-                              : selectedFinanceiroData.baixado
-                                ? 'Marcar como Pendente'
-                                : 'Marcar como Baixado'}
-                          </Button>
-                        </div>
-                        <div>Data de Baixa:</div>
-                        <div>{selectedFinanceiroData.baixado_em ? new Date(selectedFinanceiroData.baixado_em as unknown as string).toLocaleDateString('pt-BR') : '-'}</div>
-                      </div>
-                    </div>
-                </div>
-                <div className="space-y-4">
-                    <h3 className="font-semibold">Registros Financeiros</h3>
-                    <div className="rounded-md border">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Verba</TableHead>
-                            <TableHead>Atividade</TableHead>
-                            <TableHead>Descrição</TableHead>
-                            <TableHead className="text-right">Bases</TableHead>
-                            <TableHead className="text-right">Proventos</TableHead>
-                            <TableHead className="text-right">Descontos</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {selectedFinanceiroData.registros_financeiros?.map((item: RegistroFinanceiro, idx: number) => {
-                            const numericValue = typeof item.valor === 'string' ? Number(item.valor) : item.valor
-                            const isProvento = item.tipo === '1'
-                            const isDesconto = item.tipo === '2'
-                            const isBaseProvento = item.tipo === '3'
-                            const isBaseDesconto = item.tipo === '4'
-                            const isBase = isBaseProvento || isBaseDesconto
-
-                            const basesValue = isBase ? numericValue : undefined
-                            const proventosValue = isProvento ? numericValue : undefined
-                            const descontosValue = isDesconto ? numericValue : undefined
-
-                            return (
-                              <TableRow key={`${item.cod_verba}-${idx}`}>
-                                <TableCell>{item.cod_verba}</TableCell>
-                                <TableCell>{item.atividade}</TableCell>
-                                <TableCell>{item.descricao}</TableCell>
-                                <TableCell className="text-right">
-                                  {typeof basesValue === 'number' ? (
-                                    <span>
-                                      {formatCurrency(basesValue)}
-                                      <span className="ml-2 text-xs text-gray-500">
-                                        {isBaseProvento ? 'Base(Provento)' : isBaseDesconto ? 'Base(Desconto)' : ''}
-                                      </span>
-                                    </span>
-                                  ) : (
-                                    '-'
-                                  )}
-                                </TableCell>
-                                <TableCell className="text-right">{typeof proventosValue === 'number' ? formatCurrency(proventosValue) : '-'}</TableCell>
-                                <TableCell className="text-right">{typeof descontosValue === 'number' ? formatCurrency(descontosValue) : '-'}</TableCell>
-                              </TableRow>
-                            )
-                          })}
-                        </TableBody>
-                      </Table>
+                  <div className="space-y-4">
+                    <h3 className="font-semibold">Informações do Registro</h3>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div>Prestador (ID):</div>
+                      <div>{selectedFinanceiroData.id_prestador}</div>
+                      <div>Período:</div>
+                      <div>{selectedFinanceiroData.periodo}</div>
+                      <div>Nome do Arquivo:</div>
+                      <div>{selectedFinanceiroData.nome_arquivo ?? '-'}</div>
                     </div>
                   </div>
+
+                  <div className="space-y-4">
+                    <h3 className="font-semibold">Detalhes</h3>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div>Prestador:</div>
+                      <div>{selectedFinanceiroData.prestador?.nome ?? '-'}</div>
+                      <div className="flex items-center gap-2">Status:</div>
+                      <div className="flex items-center gap-3">
+                        {getBaixadoBadge(selectedFinanceiroData.baixado)}
+                        {selectedFinanceiroData.baixado ? (
+                          <PermissionGuard permission="retirar_baixa">
+                            <Button
+                              className="bg-red-100 text-red-800 hover:bg-red-200"
+                              size="sm"
+                              onClick={async () => {
+                                if (!selectedFinanceiroData) return
+                                await toggleBaixaMutation.mutateAsync({
+                                  id_prestador: selectedFinanceiroData.id_prestador,
+                                  periodo: selectedFinanceiroData.periodo,
+                                  toBaixado: false,
+                                })
+                                // Invalidate and refetch financeiros data
+                                await queryClient.invalidateQueries({ queryKey: ['financeiros'] })
+                              }}
+                              disabled={toggleBaixaMutation.isPending}
+                            >
+                              {toggleBaixaMutation.isPending ? 'Atualizando...' : 'Marcar como Pendente'}
+                            </Button>
+                          </PermissionGuard>
+                        ) : (
+                          <PermissionGuard permission="registrar_baixa">
+                            <Button
+                              className="bg-emerald-100 text-emerald-800 hover:bg-emerald-200"
+                              size="sm"
+                              onClick={async () => {
+                                if (!selectedFinanceiroData) return
+                                await toggleBaixaMutation.mutateAsync({
+                                  id_prestador: selectedFinanceiroData.id_prestador,
+                                  periodo: selectedFinanceiroData.periodo,
+                                  toBaixado: true,
+                                })
+                                // Invalidate and refetch financeiros data
+                                await queryClient.invalidateQueries({ queryKey: ['financeiros'] })
+                              }}
+                              disabled={toggleBaixaMutation.isPending}
+                            >
+                              {toggleBaixaMutation.isPending ? 'Atualizando...' : 'Marcar como Baixado'}
+                            </Button>
+                          </PermissionGuard>
+                        )}
+                      </div>
+                      <div>Data de Baixa:</div>
+                      <div>{selectedFinanceiroData.baixado_em ? new Date(selectedFinanceiroData.baixado_em as unknown as string).toLocaleDateString('pt-BR') : '-'}</div>
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <h3 className="font-semibold">Registros Financeiros</h3>
+                  <div className="rounded-md border max-h-96 overflow-auto">
+                    <Table>
+                      <TableHeader className="sticky top-0 bg-white z-10">
+                        <TableRow>
+                          <TableHead>Verba</TableHead>
+                          <TableHead>Atividade</TableHead>
+                          <TableHead>Descrição</TableHead>
+                          <TableHead className="text-right">Bases</TableHead>
+                          <TableHead className="text-right">Proventos</TableHead>
+                          <TableHead className="text-right">Descontos</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {selectedFinanceiroData.registros_financeiros?.map((item: RegistroFinanceiro, idx: number) => {
+                          const numericValue = typeof item.valor === 'string' ? Number(item.valor) : item.valor
+                          const isProvento = item.tipo === '1'
+                          const isDesconto = item.tipo === '2'
+                          const isBaseProvento = item.tipo === '3'
+                          const isBaseDesconto = item.tipo === '4'
+                          const isBase = isBaseProvento || isBaseDesconto
+
+                          const basesValue = isBase ? numericValue : undefined
+                          const proventosValue = isProvento ? numericValue : undefined
+                          const descontosValue = isDesconto ? numericValue : undefined
+
+                          return (
+                            <TableRow key={`${item.cod_verba}-${idx}`}>
+                              <TableCell>{item.cod_verba}</TableCell>
+                              <TableCell>{item.atividade}</TableCell>
+                              <TableCell>{item.descricao}</TableCell>
+                              <TableCell className="text-right">
+                                {typeof basesValue === 'number' ? (
+                                  <span>
+                                    {formatCurrency(basesValue)}
+                                    <span className="ml-2 text-xs text-gray-500">
+                                      {isBaseProvento ? 'Base(Provento)' : isBaseDesconto ? 'Base(Desconto)' : ''}
+                                    </span>
+                                  </span>
+                                ) : (
+                                  '-'
+                                )}
+                              </TableCell>
+                              <TableCell className="text-right">{typeof proventosValue === 'number' ? formatCurrency(proventosValue) : '-'}</TableCell>
+                              <TableCell className="text-right">{typeof descontosValue === 'number' ? formatCurrency(descontosValue) : '-'}</TableCell>
+                            </TableRow>
+                          )
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
               </>
             )}
           </div>
@@ -435,6 +700,21 @@ export const Financeiro = () => {
         onClose={handleCloseModal}
         financeiroId={editingFinanceiroId}
       />
+
+      <ImportarFinanceiroModal
+        isOpen={isImportarModalOpen}
+        onClose={handleCloseImportarModal}
+      />
+
+      {uploadNotaData && (
+        <UploadNotaModal
+          isOpen={isUploadNotaModalOpen}
+          onClose={handleCloseUploadNotaModal}
+          idPrestador={uploadNotaData.idPrestador}
+          periodo={uploadNotaData.periodo}
+          prestadorNome={uploadNotaData.prestadorNome}
+        />
+      )}
     </div>
   )
 } 

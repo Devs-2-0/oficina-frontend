@@ -1,9 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
-import { listarFinanceiros } from '@/http/services/financeiro/listar-financeiros'
+import { listarFinanceiros, ListarFinanceirosParams } from '@/http/services/financeiro/listar-financeiros'
 
-export const useGetFinanceiros = () => {
+export const useGetFinanceiros = (params?: ListarFinanceirosParams) => {
   return useQuery({
-    queryKey: ['financeiros'],
-    queryFn: listarFinanceiros,
+    queryKey: ['financeiros', params],
+    queryFn: () => listarFinanceiros(params),
+    refetchOnMount: true,
+    refetchOnWindowFocus: false,
   })
 } 

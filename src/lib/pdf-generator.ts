@@ -170,16 +170,18 @@ export class FinanceiroPDFGenerator {
       body: tableData,
       startY: startY + 5,
       margin: { 
+        top: 10,
+        bottom: 30, // Increased bottom margin to avoid footer overlap
         left: this.options.margin?.left || 20, 
         right: this.options.margin?.right || 20 
       },
-             styles: {
-         fontSize: 8,
-         cellPadding: 2,
-         lineColor: [220, 220, 220],
-         lineWidth: 0.1,
-         textColor: [51, 51, 51]
-       },
+      styles: {
+        fontSize: 8,
+        cellPadding: 2,
+        lineColor: [220, 220, 220],
+        lineWidth: 0.1,
+        textColor: [51, 51, 51]
+      },
       headStyles: {
         fillColor: [220, 53, 69],
         textColor: [255, 255, 255],
@@ -188,24 +190,21 @@ export class FinanceiroPDFGenerator {
       alternateRowStyles: {
         fillColor: [248, 249, 250]
       },
-             columnStyles: {
-         0: { cellWidth: 18 }, // Verba
-         1: { cellWidth: 22 }, // Atividade
-         2: { cellWidth: 45 }, // Descrição
-         3: { cellWidth: 30, halign: 'right' }, // Bases
-         4: { cellWidth: 30, halign: 'right' }, // Proventos
-         5: { cellWidth: 30, halign: 'right' }  // Descontos
-       },
+      columnStyles: {
+        0: { cellWidth: 18 }, // Verba
+        1: { cellWidth: 22 }, // Atividade
+        2: { cellWidth: 45 }, // Descrição
+        3: { cellWidth: 30, halign: 'right' }, // Bases
+        4: { cellWidth: 30, halign: 'right' }, // Proventos
+        5: { cellWidth: 30, halign: 'right' }  // Descontos
+      },
       didDrawPage: (data) => {
-        // Add page number to each page
-        const pageCount = this.doc.getNumberOfPages()
-        this.doc.setFontSize(10)
-        this.doc.setTextColor(128, 128, 128)
-        this.doc.text(
-          `Página ${data.pageNumber} de ${pageCount}`,
-          this.doc.internal.pageSize.width - 30,
-          this.doc.internal.pageSize.height - 10
-        )
+        // Add footer to each page as the table is drawn
+        this.addFooter()
+      },
+      willDrawPage: (data) => {
+        // Ensure proper spacing for footer
+        data.cursor.y = Math.max(data.cursor.y, 20)
       }
     })
 
@@ -217,6 +216,17 @@ export class FinanceiroPDFGenerator {
   private addSummary(financeiro: Financeiro, startY: number) {
     if (!financeiro.registros_financeiros || financeiro.registros_financeiros.length === 0) {
       return startY
+    }
+
+    // Check if there's enough space for the summary
+    const pageHeight = this.doc.internal.pageSize.height
+    const requiredSpace = 50 // Space needed for summary section
+    
+    if (startY + requiredSpace > pageHeight - 30) {
+      // Add a new page for the summary
+      this.doc.addPage()
+      this.addHeader() // Add header to new page
+      startY = 40 // Reset Y position for new page
     }
 
     this.doc.setFontSize(12)
@@ -260,9 +270,10 @@ export class FinanceiroPDFGenerator {
       currentY += 5
     })
     
+    // Add footer to the summary page
+    this.addFooter()
+    
     return currentY + 5
-
-    return currentY + 10
   }
 
   generatePDF(financeiro: Financeiro, filename?: string): void {
@@ -276,18 +287,11 @@ export class FinanceiroPDFGenerator {
       // Add financeiro information
       let currentY = this.addFinanceiroInfo(financeiro)
       
-      // Add registros table
+      // Add registros table (footer is added automatically in didDrawPage)
       currentY = this.addRegistrosTable(financeiro, currentY)
       
       // Add summary
       currentY = this.addSummary(financeiro, currentY)
-      
-      // Add footer to all pages
-      const totalPages = this.doc.getNumberOfPages()
-      for (let i = 1; i <= totalPages; i++) {
-        this.doc.setPage(i)
-        this.addFooter()
-      }
       
       // Save the PDF
       const finalFilename = filename || `financeiro-${financeiro.id_prestador}-${financeiro.periodo}.pdf`
@@ -380,6 +384,8 @@ export class FinanceiroPDFGenerator {
         body: tableData,
         startY: 40,
         margin: { 
+          top: 10,
+          bottom: 30, // Increased bottom margin to avoid footer overlap
           left: this.options.margin?.left || 20, 
           right: this.options.margin?.right || 20 
         },
@@ -398,42 +404,32 @@ export class FinanceiroPDFGenerator {
         alternateRowStyles: {
           fillColor: [248, 249, 250]
         },
-                 columnStyles: {
-           0: { cellWidth: 22 }, // Prestador
-           1: { cellWidth: 12 }, // ID
-           2: { cellWidth: 18 }, // Período
-           3: { cellWidth: 16 }, // Verba
-           4: { cellWidth: 18 }, // Atividade
-           5: { cellWidth: 30 }, // Descrição
-           6: { cellWidth: 25, halign: 'right' }, // Bases
-           7: { cellWidth: 25, halign: 'right' }, // Proventos
-           8: { cellWidth: 25, halign: 'right' }, // Descontos
-           9: { cellWidth: 16 }, // Status
-           10: { cellWidth: 18 }  // Data de Baixa
-         },
+        columnStyles: {
+          0: { cellWidth: 22 }, // Prestador
+          1: { cellWidth: 12 }, // ID
+          2: { cellWidth: 18 }, // Período
+          3: { cellWidth: 16 }, // Verba
+          4: { cellWidth: 18 }, // Atividade
+          5: { cellWidth: 30 }, // Descrição
+          6: { cellWidth: 25, halign: 'right' }, // Bases
+          7: { cellWidth: 25, halign: 'right' }, // Proventos
+          8: { cellWidth: 25, halign: 'right' }, // Descontos
+          9: { cellWidth: 16 }, // Status
+          10: { cellWidth: 18 }  // Data de Baixa
+        },
         didDrawPage: (data) => {
-          // Add page number to each page
-          const pageCount = this.doc.getNumberOfPages()
-          this.doc.setFontSize(10)
-          this.doc.setTextColor(128, 128, 128)
-          this.doc.text(
-            `Página ${data.pageNumber} de ${pageCount}`,
-            this.doc.internal.pageSize.width - 30,
-            this.doc.internal.pageSize.height - 10
-          )
+          // Add footer to each page as the table is drawn
+          this.addFooter()
+        },
+        willDrawPage: (data) => {
+          // Ensure proper spacing for footer
+          data.cursor.y = Math.max(data.cursor.y, 20)
         }
       })
 
       // Add summary section
       const finalY = (this.doc as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY || 40
       this.addSummarySection(financeiros, finalY + 10)
-
-      // Add footer
-      const totalPages = this.doc.getNumberOfPages()
-      for (let i = 1; i <= totalPages; i++) {
-        this.doc.setPage(i)
-        this.addFooter()
-      }
 
       // Save the PDF
       const finalFilename = filename || `financeiros-completo-${new Date().toISOString().split('T')[0]}.pdf`
@@ -445,9 +441,14 @@ export class FinanceiroPDFGenerator {
   }
 
   private addSummarySection(financeiros: Financeiro[], startY: number): void {
-    if (startY > this.doc.internal.pageSize.height - 50) {
+    // Check if there's enough space for the summary section
+    const pageHeight = this.doc.internal.pageSize.height
+    const requiredSpace = 80 // Space needed for summary section
+    
+    if (startY + requiredSpace > pageHeight - 30) {
       this.doc.addPage()
-      startY = 20
+      this.addHeader() // Add header to new page
+      startY = 40 // Reset Y position for new page
     }
 
     this.doc.setFontSize(12)
@@ -502,6 +503,9 @@ export class FinanceiroPDFGenerator {
       this.doc.text(value, 120, currentY)
       currentY += 5
     })
+    
+    // Add footer to the summary page
+    this.addFooter()
   }
 }
 
