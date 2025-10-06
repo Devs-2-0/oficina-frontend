@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { Switch } from "@/components/ui/switch"
 import { Loader2, Upload, X } from "lucide-react"
 
 import { Textarea } from "@/components/ui/textarea"
@@ -18,14 +19,47 @@ import { usePermissions } from "@/hooks/use-permissions"
 import { toast } from "sonner"
 import { PrestadorSelect } from "./prestador-select"
 
+// Funções para conversão de formato de data
+const formatToDisplay = (backendFormat: string): string => {
+  if (!backendFormat) return ""
+  // Converte YYYY-MM para MM-YYYY
+  const [year, month] = backendFormat.split('-')
+  return `${month}-${year}`
+}
+
+const formatToBackend = (displayFormat: string): string => {
+  if (!displayFormat) return ""
+  // Converte MM-YYYY para YYYY-MM
+  const [month, year] = displayFormat.split('-')
+  return `${year}-${month}`
+}
+
+// Função para aplicar máscara MM-YYYY
+const applyMask = (value: string): string => {
+  // Remove caracteres não numéricos
+  const numbers = value.replace(/\D/g, '')
+  
+  // Aplica máscara MM-YYYY
+  if (numbers.length === 0) {
+    return ''
+  } else if (numbers.length <= 2) {
+    return numbers
+  } else if (numbers.length <= 4) {
+    return `${numbers.slice(0, 2)}-${numbers.slice(2)}`
+  } else {
+    return `${numbers.slice(0, 2)}-${numbers.slice(2, 6)}`
+  }
+}
+
 const contratoSchema = z.object({
   competencia: z.string()
-    .nonempty("Competência é obrigatória")
-    .regex(/^\d{4}-(0[1-9]|1[0-2])$/, "Formato inválido. Use AAAA-MM (ex: 2024-03)"),
+    .nonempty("Início da vigência é obrigatória")
+    .regex(/^(0[1-9]|1[0-2])-\d{4}$/, "Formato inválido. Use MM-YYYY (ex: 03-2024)"),
   prestadorId: z.string().nonempty("Prestador é obrigatório"),
   arquivo: z.any().optional(),
   valor: z.string().optional(),
   descricao: z.string().optional(),
+  ativo: z.boolean().optional(),
 })
 
 type ContratoFormData = z.infer<typeof contratoSchema>
@@ -69,11 +103,12 @@ export function ContractModal({ isOpen, onClose, contratoId }: ContractModalProp
   useEffect(() => {
     if (contrato && isEditMode) {
       reset({
-        competencia: contrato.competencia || "",
+        competencia: contrato.competencia ? formatToDisplay(contrato.competencia) : "",
         prestadorId: contrato.prestador?.id ? String(contrato.prestador.id) : "",
         arquivo: undefined,
         valor: contrato.valor ? String(contrato.valor) : "",
         descricao: contrato.descricao || "",
+        ativo: contrato.ativo,
       })
     } else if (!isEditMode) {
       reset({
@@ -110,7 +145,7 @@ export function ContractModal({ isOpen, onClose, contratoId }: ContractModalProp
 
     try {
       const formData = new FormData()
-      formData.append("competencia", data.competencia)
+      formData.append("competencia", formatToBackend(data.competencia))
       formData.append("prestadorId", data.prestadorId)
       // formData.append("criadorId", String(usuario.id))
 
@@ -120,6 +155,11 @@ export function ContractModal({ isOpen, onClose, contratoId }: ContractModalProp
 
       if (data.descricao) {
         formData.append("descricao", data.descricao)
+      }
+
+      // Só incluir campo ativo na edição
+      if (isEditMode && data.ativo !== undefined) {
+        formData.append("ativo", String(data.ativo))
       }
 
       if (isEditMode && contratoId) {
@@ -187,12 +227,20 @@ export function ContractModal({ isOpen, onClose, contratoId }: ContractModalProp
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="competencia">Competência</Label>
+                  <Label htmlFor="competencia">Inicio Vigência</Label>
                   <Controller
                     name="competencia"
                     control={control}
                     render={({ field }) => (
-                      <Input {...field} placeholder="Ex: 2024-03" />
+                      <Input 
+                        {...field} 
+                        placeholder="Ex: 03-2024"
+                        maxLength={7}
+                        onChange={(e) => {
+                          const maskedValue = applyMask(e.target.value)
+                          field.onChange(maskedValue)
+                        }}
+                      />
                     )}
                   />
                   {errors.competencia && (
@@ -287,6 +335,28 @@ export function ContractModal({ isOpen, onClose, contratoId }: ContractModalProp
                   )}
                 />
               </div>
+
+              {isEditMode && (
+                <div className="space-y-2">
+                  <Label htmlFor="ativo">Status do Contrato</Label>
+                  <Controller
+                    name="ativo"
+                    control={control}
+                    render={({ field }) => (
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          id="ativo"
+                          checked={field.value || false}
+                          onCheckedChange={field.onChange}
+                        />
+                        <Label htmlFor="ativo" className="text-sm font-normal">
+                          {field.value ? "Ativo" : "Inativo"}
+                        </Label>
+                      </div>
+                    )}
+                  />
+                </div>
+              )}
             </div>
 
             <DialogFooter>

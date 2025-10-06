@@ -14,7 +14,7 @@ export function useGetFerias() {
     if (query.error) {
       const error = query.error as AxiosError
       const errorData = error?.response?.data as { message?: string }
-      const errorMessage = errorData?.message || 'Erro ao buscar férias'
+      const errorMessage = errorData?.message || 'Erro ao buscar descansos'
       toast.error(errorMessage)
     }
   }, [query.error])

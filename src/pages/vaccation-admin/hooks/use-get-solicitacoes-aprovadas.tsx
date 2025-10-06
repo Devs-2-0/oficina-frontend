@@ -15,7 +15,7 @@ export function useGetSolicitacoesAprovadas() {
     if (query.error) {
       const error = query.error as AxiosError
       const errorData = error?.response?.data as { message?: string }
-      const errorMessage = errorData?.message || 'Erro ao buscar solicitações aprovadas de férias'
+      const errorMessage = errorData?.message || 'Erro ao buscar solicitações aprovadas de descanso remunerado'
       toast.error(errorMessage)
     }
   }, [query.error])

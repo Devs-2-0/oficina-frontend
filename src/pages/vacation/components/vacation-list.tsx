@@ -21,7 +21,7 @@ export function VacationList() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Lista de Férias</CardTitle>
+        <CardTitle>Lista de Descansos</CardTitle>
       </CardHeader>
       <CardContent>
         <Table>

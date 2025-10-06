@@ -14,7 +14,7 @@ export function useVerificarPeriodoAquisitivo() {
     if (query.error) {
       const error = query.error as AxiosError
       const errorData = error?.response?.data as { message?: string }
-      const errorMessage = errorData?.message || 'Erro ao buscar períodos de férias'
+      const errorMessage = errorData?.message || 'Erro ao buscar períodos de descanso remunerado'
       toast.error(errorMessage)
     }
   }, [query.error])

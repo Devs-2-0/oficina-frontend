@@ -291,7 +291,7 @@ export const Contracts = () => {
                     </TableHead>
                     <TableHead className="font-semibold text-gray-700 py-4 cursor-pointer" onClick={() => handleSort("competencia")}>
                       <div className="flex items-center">
-                        Competência
+                        Início Vigência
                         <span className="ml-1">
                           {sortField === "competencia" && (sortDirection === "asc" ? "↑" : "↓")}
                         </span>
@@ -320,13 +320,19 @@ export const Contracts = () => {
                         </span>
                       </div>
                     </TableHead>
+                    <TableHead className="font-semibold text-gray-700 py-4 cursor-pointer" onClick={() => handleSort("ativo")}>
+                      <div className="flex items-center">
+                        Status
+                        <span className="ml-1">{sortField === "ativo" && (sortDirection === "asc" ? "↑" : "↓")}</span>
+                      </div>
+                    </TableHead>
                     <TableHead className="text-right font-semibold text-gray-700 py-4">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {isLoading ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-12">
+                      <TableCell colSpan={8} className="text-center py-12">
                         <div className="flex items-center justify-center gap-3">
                           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-red-700"></div>
                           <span className="text-gray-600 font-medium">Carregando contratos...</span>
@@ -335,7 +341,7 @@ export const Contracts = () => {
                     </TableRow>
                   ) : sortedContracts.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-12">
+                      <TableCell colSpan={8} className="text-center py-12">
                         <div className="flex flex-col items-center gap-3">
                           <div className="p-3 bg-gray-100 rounded-full">
                             <FileText className="h-6 w-6 text-gray-400" />
@@ -359,6 +365,15 @@ export const Contracts = () => {
                         </TableCell>
                         <TableCell className="py-4 text-gray-700 hidden lg:table-cell">
                           {contract.data_ultima_atualizacao ? new Date(contract.data_ultima_atualizacao).toLocaleDateString("pt-BR") : 'Não definido'}
+                        </TableCell>
+                        <TableCell className="py-4">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            contract.ativo 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {contract.ativo ? 'Ativo' : 'Inativo'}
+                          </span>
                         </TableCell>
                         <TableCell className="text-right py-4">
                           <PermissionGuard permissions={["visualizar_arquivo_contrato", "atualizar_arquivo_contrato", "atualizar_contrato", "excluir_contrato"]}>

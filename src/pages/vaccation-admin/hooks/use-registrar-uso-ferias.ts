@@ -10,12 +10,12 @@ export function useRegistrarUsoFerias() {
     mutationFn: ({ solicitacaoId, data }: { solicitacaoId: number; data: RegistrarUsoFeriasRequest }) => 
       registrarUsoFerias(solicitacaoId, data),
     onSuccess: () => {
-      toast.success('Uso de férias registrado com sucesso!')
+      toast.success('Uso de descanso remunerado registrado com sucesso!')
       queryClient.invalidateQueries({ queryKey: ['solicitacoes-aprovadas'] })
     },
     onError: (error: AxiosError) => {
       const errorData = error?.response?.data as { message?: string }
-      const errorMessage = errorData?.message || 'Erro ao registrar uso de férias'
+      const errorMessage = errorData?.message || 'Erro ao registrar uso de descanso remunerado'
       toast.error(errorMessage)
     }
   })

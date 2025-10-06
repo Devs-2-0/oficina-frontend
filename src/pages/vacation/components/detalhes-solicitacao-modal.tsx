@@ -36,9 +36,9 @@ export const DetalhesSolicitacaoModal = ({ isOpen, onClose, solicitacao, onEdit 
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Detalhes da Solicitação de Férias</DialogTitle>
+          <DialogTitle>Detalhes da Solicitação de Descanso Remunerado</DialogTitle>
           <DialogDescription>
-            Informações detalhadas sobre a solicitação de férias.
+            Informações detalhadas sobre a solicitação de descanso remunerado.
           </DialogDescription>
         </DialogHeader>
 
@@ -74,7 +74,7 @@ export const DetalhesSolicitacaoModal = ({ isOpen, onClose, solicitacao, onEdit 
           </div>
 
           <div className="space-y-4">
-            <h3 className="font-semibold">Períodos de Férias</h3>
+            <h3 className="font-semibold">Períodos de Descanso</h3>
             <div className="space-y-3">
               {/* Primeiro período */}
               <div className="grid grid-cols-3 gap-4 p-3 border rounded-lg">
@@ -114,25 +114,6 @@ export const DetalhesSolicitacaoModal = ({ isOpen, onClose, solicitacao, onEdit 
                 </div>
               )}
 
-              {/* Terceiro período */}
-              {solicitacao.data_inicio3 && (
-                <div className="grid grid-cols-3 gap-4 p-3 border rounded-lg">
-                  <div>
-                    <div className="text-sm font-medium">3º Período</div>
-                    <div className="text-sm text-muted-foreground">
-                      {format(new Date(solicitacao.data_inicio3), "dd/MM/yyyy", { locale: ptBR })}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-sm font-medium">Dias</div>
-                    <div className="text-sm text-muted-foreground">{solicitacao.dias_corridos3 || 0}</div>
-                  </div>
-                  <div>
-                    <div className="text-sm font-medium">Status</div>
-                    <div className="text-sm text-muted-foreground">Ativo</div>
-                  </div>
-                </div>
-              )}
             </div>
 
             <div className="flex justify-between items-center p-3 bg-muted rounded-lg">

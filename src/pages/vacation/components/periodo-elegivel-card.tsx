@@ -79,7 +79,7 @@ export function PeriodoElegivelCard({ periodo, onNovaSolicitacao }: PeriodoElegi
               disabled={totalDiasDisponiveis <= 0}
             >
               <Plus className="h-4 w-4 mr-2" />
-              Solicitar Férias
+              Solicitar Descanso
             </Button>
           </PermissionGuard>
         </div>

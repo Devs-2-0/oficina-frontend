@@ -61,15 +61,6 @@ export const DetalhesFeriasModal = ({ isOpen, onClose, solicitacao }: DetalhesFe
       })
     }
     
-    if (solicitacao.data_inicio3 && solicitacao.dias_corridos3) {
-      const dataFim3 = calcularDataFim(solicitacao.data_inicio3, solicitacao.dias_corridos3)
-      periodos.push({
-        numero: 3,
-        inicio: solicitacao.data_inicio3,
-        fim: dataFim3,
-        dias: solicitacao.dias_corridos3
-      })
-    }
     
     return periodos
   }
@@ -82,10 +73,10 @@ export const DetalhesFeriasModal = ({ isOpen, onClose, solicitacao }: DetalhesFe
         <DialogHeader className="flex-shrink-0 pb-4">
           <DialogTitle className="flex items-center gap-2 text-lg">
             <FileText className="h-5 w-5 text-red-700" />
-            Detalhes da Solicitação de Férias
+            Detalhes da Solicitação de Descanso
           </DialogTitle>
           <DialogDescription>
-            Informações detalhadas sobre a solicitação de férias do prestador.
+            Informações detalhadas sobre a solicitação de descanso remunerado do prestador.
           </DialogDescription>
         </DialogHeader>
 
@@ -116,12 +107,12 @@ export const DetalhesFeriasModal = ({ isOpen, onClose, solicitacao }: DetalhesFe
             </CardContent>
           </Card>
 
-          {/* Períodos de Férias */}
+          {/* Períodos de Descanso */}
           <Card className="border">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-base">
                 <Calendar className="h-4 w-4 text-gray-600" />
-                Períodos de Férias
+                Períodos de Descanso
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-0">

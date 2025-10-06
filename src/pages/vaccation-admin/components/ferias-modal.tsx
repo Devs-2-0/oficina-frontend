@@ -52,7 +52,7 @@ export const FeriasModal = ({ isOpen, onClose, solicitacao }: FeriasModalProps) 
   }
 
   const adicionarPeriodo = () => {
-    if (periodos.length < 3) {
+    if (periodos.length < 2) {
       setPeriodos([...periodos, { inicio: '', termino: '', dias: 0 }])
     }
   }
@@ -89,9 +89,9 @@ export const FeriasModal = ({ isOpen, onClose, solicitacao }: FeriasModalProps) 
           </DialogHeader>
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Não é possível solicitar férias</AlertTitle>
+            <AlertTitle>Não é possível solicitar descanso remunerado</AlertTitle>
             <AlertDescription>
-              {periodoAquisitivo.motivo || 'Você não possui período aquisitivo disponível para solicitar férias.'}
+              {periodoAquisitivo.motivo || 'Você não possui período aquisitivo disponível para solicitar descanso remunerado.'}
             </AlertDescription>
           </Alert>
           <div className="flex justify-end">
@@ -130,9 +130,9 @@ export const FeriasModal = ({ isOpen, onClose, solicitacao }: FeriasModalProps) 
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>{solicitacao ? 'Editar Solicitação de Férias' : 'Nova Solicitação de Férias'}</DialogTitle>
+          <DialogTitle>{solicitacao ? 'Editar Solicitação de Descanso Remunerado' : 'Nova Solicitação de Descanso Remunerado'}</DialogTitle>
           <DialogDescription>
-            Você possui {periodoAquisitivo?.saldo_dias} dias disponíveis para solicitar férias.
+            Você possui {periodoAquisitivo?.saldo_dias} dias disponíveis para solicitar descanso remunerado.
             {periodoAquisitivo?.inicio && periodoAquisitivo?.fim && (
               <>
                 Período aquisitivo: {format(new Date(periodoAquisitivo.inicio), "dd/MM/yyyy", { locale: ptBR })} a {format(new Date(periodoAquisitivo.fim), "dd/MM/yyyy", { locale: ptBR })}
@@ -144,8 +144,8 @@ export const FeriasModal = ({ isOpen, onClose, solicitacao }: FeriasModalProps) 
         <div className="grid gap-6 py-4">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <Label>Períodos de Férias</Label>
-              {periodos.length < 3 && (
+              <Label>Períodos de Descanso</Label>
+              {periodos.length < 2 && (
                 <Button type="button" variant="outline" size="sm" onClick={adicionarPeriodo}>
                   + Adicionar Período
                 </Button>
@@ -223,9 +223,9 @@ export const FeriasModal = ({ isOpen, onClose, solicitacao }: FeriasModalProps) 
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label>Abono Pecuniário (Venda de Férias)</Label>
+                  <Label>Abono Pecuniário (Venda de Descanso)</Label>
                   <div className="text-sm text-muted-foreground">
-                    Você pode vender até 10 dias das suas férias.
+                    Você pode vender até 10 dias do seu descanso remunerado.
                   </div>
                 </div>
                 <Switch
@@ -274,7 +274,7 @@ export const FeriasModal = ({ isOpen, onClose, solicitacao }: FeriasModalProps) 
             <Label htmlFor="observacoes">Observações</Label>
             <Textarea
               id="observacoes"
-              placeholder="Observações adicionais sobre a solicitação de férias"
+              placeholder="Observações adicionais sobre a solicitação de descanso remunerado"
               value={observacoes}
               onChange={(e) => setObservacoes(e.target.value)}
             />
@@ -297,7 +297,7 @@ export const FeriasModal = ({ isOpen, onClose, solicitacao }: FeriasModalProps) 
             ) : solicitacao ? (
               'Salvar alterações'
             ) : (
-              'Solicitar férias'
+              'Solicitar descanso'
             )}
           </Button>
         </div>

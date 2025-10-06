@@ -171,10 +171,10 @@ export const VacationAdmin = () => {
               </div>
               <div>
                 <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
-                  Gestão de Férias
+                  Gestão de Descanso Remunerado
                 </h1>
                 <p className="text-lg text-gray-600 mt-1">
-                  Gerencie e aprove as solicitações de férias dos prestadores
+                  Gerencie e aprove as solicitações de descanso remunerado dos prestadores
                 </p>
               </div>
             </div>
@@ -191,7 +191,7 @@ export const VacationAdmin = () => {
                   Solicitações Pendentes
                 </h2>
                 <p className="text-gray-600">
-                  Aprove ou reprove as solicitações de férias dos prestadores
+                  Aprove ou reprove as solicitações de descanso remunerado dos prestadores
                 </p>
               </div>
             </div>
@@ -221,8 +221,6 @@ export const VacationAdmin = () => {
                       <TableHead className="font-semibold text-gray-700 py-4">Dias</TableHead>
                       <TableHead className="font-semibold text-gray-700 py-4">2º Período</TableHead>
                       <TableHead className="font-semibold text-gray-700 py-4">Dias</TableHead>
-                      <TableHead className="font-semibold text-gray-700 py-4">3º Período</TableHead>
-                      <TableHead className="font-semibold text-gray-700 py-4">Dias</TableHead>
                       <TableHead className="font-semibold text-gray-700 py-4">Total</TableHead>
                       <TableHead className="font-semibold text-gray-700 py-4">Status</TableHead>
                       <TableHead className="font-semibold text-gray-700 py-4">Solicitado em</TableHead>
@@ -232,7 +230,7 @@ export const VacationAdmin = () => {
                   <TableBody>
                     {isLoading ? (
                       <TableRow>
-                        <TableCell colSpan={12} className="text-center py-12">
+                        <TableCell colSpan={10} className="text-center py-12">
                           <div className="flex items-center justify-center gap-3">
                             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-red-700"></div>
                             <span className="text-gray-600 font-medium">Carregando solicitações...</span>
@@ -241,14 +239,14 @@ export const VacationAdmin = () => {
                       </TableRow>
                     ) : filteredRequests.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={12} className="text-center py-12">
+                        <TableCell colSpan={10} className="text-center py-12">
                           <div className="flex flex-col items-center gap-3">
                             <div className="p-3 bg-gray-100 rounded-full">
                               <Calendar className="h-6 w-6 text-gray-400" />
                             </div>
                             <div>
                               <h3 className="text-lg font-semibold text-gray-900 mb-1">Nenhuma solicitação encontrada</h3>
-                              <p className="text-gray-600">Não há solicitações de férias para gerenciar no momento.</p>
+                              <p className="text-gray-600">Não há solicitações de descanso remunerado para gerenciar no momento.</p>
                             </div>
                           </div>
                         </TableCell>
@@ -288,20 +286,6 @@ export const VacationAdmin = () => {
                           <TableCell className="py-4">
                             <span className="font-medium text-gray-900">
                               {solicitacao.dias_corridos2 || 0}
-                            </span>
-                          </TableCell>
-                          <TableCell className="py-4">
-                            {solicitacao.data_inicio3 ? (
-                              <span className="text-gray-700">
-                                {format(new Date(solicitacao.data_inicio3), "dd/MM/yyyy", { locale: ptBR })}
-                              </span>
-                            ) : (
-                              <span className="text-gray-400">—</span>
-                            )}
-                          </TableCell>
-                          <TableCell className="py-4">
-                            <span className="font-medium text-gray-900">
-                              {solicitacao.dias_corridos3 || 0}
                             </span>
                           </TableCell>
                           <TableCell className="py-4">
@@ -404,7 +388,7 @@ export const VacationAdmin = () => {
             </Card>
           </div>
 
-          {/* Próximas Férias Section */}
+          {/* Próximos Descansos Section */}
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-6">
               <div className="p-2 bg-emerald-100 rounded-lg">
@@ -412,10 +396,10 @@ export const VacationAdmin = () => {
               </div>
               <div className="flex-1">
                 <h2 className="text-2xl font-semibold text-gray-900">
-                  Próximas Férias
+                  Próximos Descansos
                 </h2>
                 <p className="text-gray-600">
-                  Solicitações aprovadas - registre o uso de férias quando necessário
+                  Solicitações aprovadas - registre o uso de descanso remunerado quando necessário
                 </p>
               </div>
             </div>
@@ -432,8 +416,6 @@ export const VacationAdmin = () => {
                       <TableHead className="font-semibold text-gray-700 py-4">Dias</TableHead>
                       <TableHead className="font-semibold text-gray-700 py-4">2º Período</TableHead>
                       <TableHead className="font-semibold text-gray-700 py-4">Dias</TableHead>
-                      <TableHead className="font-semibold text-gray-700 py-4">3º Período</TableHead>
-                      <TableHead className="font-semibold text-gray-700 py-4">Dias</TableHead>
                       <TableHead className="font-semibold text-gray-700 py-4">Total</TableHead>
                       <TableHead className="font-semibold text-gray-700 py-4">Status</TableHead>
                       <TableHead className="font-semibold text-gray-700 py-4">Solicitado em</TableHead>
@@ -443,7 +425,7 @@ export const VacationAdmin = () => {
                   <TableBody>
                     {isLoadingAprovadas ? (
                       <TableRow>
-                        <TableCell colSpan={12} className="text-center py-12">
+                        <TableCell colSpan={10} className="text-center py-12">
                           <div className="flex items-center justify-center gap-3">
                             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-emerald-700"></div>
                             <span className="text-gray-600 font-medium">Carregando solicitações aprovadas...</span>
@@ -452,14 +434,14 @@ export const VacationAdmin = () => {
                       </TableRow>
                     ) : filteredAprovadas.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={12} className="text-center py-12">
+                        <TableCell colSpan={10} className="text-center py-12">
                           <div className="flex flex-col items-center gap-3">
                             <div className="p-3 bg-gray-100 rounded-full">
                               <Calendar className="h-6 w-6 text-gray-400" />
                             </div>
                             <div>
                               <h3 className="text-lg font-semibold text-gray-900 mb-1">Nenhuma solicitação aprovada encontrada</h3>
-                              <p className="text-gray-600">Não há solicitações de férias aprovadas no momento.</p>
+                              <p className="text-gray-600">Não há solicitações de descanso remunerado aprovadas no momento.</p>
                             </div>
                           </div>
                         </TableCell>
@@ -499,20 +481,6 @@ export const VacationAdmin = () => {
                           <TableCell className="py-4">
                             <span className="font-medium text-gray-900">
                               {solicitacao.dias_corridos2 || 0}
-                            </span>
-                          </TableCell>
-                          <TableCell className="py-4">
-                            {solicitacao.data_inicio3 ? (
-                              <span className="text-gray-700">
-                                {format(new Date(solicitacao.data_inicio3), "dd/MM/yyyy", { locale: ptBR })}
-                              </span>
-                            ) : (
-                              <span className="text-gray-400">—</span>
-                            )}
-                          </TableCell>
-                          <TableCell className="py-4">
-                            <span className="font-medium text-gray-900">
-                              {solicitacao.dias_corridos3 || 0}
                             </span>
                           </TableCell>
                           <TableCell className="py-4">
@@ -560,7 +528,7 @@ export const VacationAdmin = () => {
                                     </Button>
                                   </TooltipTrigger>
                                   <TooltipContent side="top">
-                                    <p>Registrar uso de férias</p>
+                                    <p>Registrar uso de descanso</p>
                                   </TooltipContent>
                                 </Tooltip>
                               </PermissionGuard>
@@ -615,7 +583,7 @@ export const VacationAdmin = () => {
                 <div>
                   <DialogTitle>Confirmar Aprovação</DialogTitle>
                   <DialogDescription>
-                    Você está prestes a aprovar uma solicitação de férias
+                    Você está prestes a aprovar uma solicitação de descanso remunerado
                   </DialogDescription>
                 </div>
               </div>
@@ -635,7 +603,7 @@ export const VacationAdmin = () => {
                 
                 <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
                   <p className="text-sm text-emerald-800">
-                    <strong>Atenção:</strong> Ao aprovar esta solicitação, o prestador será notificado e o período de férias será confirmado no sistema.
+                    <strong>Atenção:</strong> Ao aprovar esta solicitação, o prestador será notificado e o período de descanso remunerado será confirmado no sistema.
                   </p>
                 </div>
               </div>
@@ -667,7 +635,7 @@ export const VacationAdmin = () => {
                 <div>
                   <DialogTitle>Confirmar Reprovação</DialogTitle>
                   <DialogDescription>
-                    Você está prestes a reprovar uma solicitação de férias
+                    Você está prestes a reprovar uma solicitação de descanso remunerado
                   </DialogDescription>
                 </div>
               </div>
@@ -719,7 +687,7 @@ export const VacationAdmin = () => {
           </DialogContent>
         </Dialog>
 
-        {/* Modal de Registro de Uso de Férias */}
+        {/* Modal de Registro de Uso de Descanso */}
         <Dialog open={usoModalOpen} onOpenChange={setUsoModalOpen}>
           <DialogContent className="max-w-md">
             <DialogHeader>
@@ -728,9 +696,9 @@ export const VacationAdmin = () => {
                   <Calendar className="h-5 w-5 text-blue-700" />
                 </div>
                 <div>
-                                  <DialogTitle>Registrar Uso de Férias</DialogTitle>
+                                  <DialogTitle>Registrar Uso de Descanso</DialogTitle>
                 <DialogDescription>
-                  Registre o uso de férias para esta solicitação aprovada
+                  Registre o uso de descanso remunerado para esta solicitação aprovada
                   </DialogDescription>
                 </div>
               </div>
@@ -752,7 +720,7 @@ export const VacationAdmin = () => {
                   <Label htmlFor="observacoes">Observações (opcional)</Label>
                   <Textarea
                     id="observacoes"
-                                      placeholder="Digite observações sobre o uso de férias..."
+                                      placeholder="Digite observações sobre o uso de descanso remunerado..."
                   value={usoObservacoes}
                   onChange={(e) => setUsoObservacoes(e.target.value)}
                     rows={3}
@@ -761,7 +729,7 @@ export const VacationAdmin = () => {
                 
                 <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
                   <p className="text-sm text-blue-800">
-                    <strong>Atenção:</strong> Ao registrar o uso de férias, você confirma que o prestador iniciou o período de férias aprovado.
+                    <strong>Atenção:</strong> Ao registrar o uso de descanso remunerado, você confirma que o prestador iniciou o período de descanso aprovado.
                   </p>
                 </div>
               </div>
@@ -793,7 +761,7 @@ export const VacationAdmin = () => {
                 <div>
                   <DialogTitle>Confirmar Exclusão</DialogTitle>
                   <DialogDescription>
-                    Você está prestes a excluir uma solicitação de férias
+                    Você está prestes a excluir uma solicitação de descanso remunerado
                   </DialogDescription>
                 </div>
               </div>

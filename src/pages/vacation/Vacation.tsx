@@ -69,7 +69,7 @@ export const Vacation = () => {
             </div>
             <div>
               <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
-                Minhas Férias
+                Meu Descanso Remunerado
               </h1>
               <p className="text-lg text-gray-600 mt-1">
                 Gerencie suas solicitações e visualize seus períodos elegíveis
@@ -89,7 +89,7 @@ export const Vacation = () => {
                 Períodos Elegíveis
               </h2>
               <p className="text-gray-600">
-                Visualize seus períodos disponíveis para solicitar férias
+                Visualize seus períodos disponíveis para solicitar descanso remunerado
               </p>
             </div>
           </div>
@@ -107,7 +107,7 @@ export const Vacation = () => {
                     <Calendar className="h-8 w-8 text-gray-400" />
                   </div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Nenhum período elegível</h3>
-                  <p className="text-gray-600">Você ainda não possui períodos elegíveis para solicitar férias.</p>
+                  <p className="text-gray-600">Você ainda não possui períodos elegíveis para solicitar descanso remunerado.</p>
                 </div>
               ) : (
                 <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
@@ -135,7 +135,7 @@ export const Vacation = () => {
                 Minhas Solicitações
               </h2>
               <p className="text-gray-600">
-                Acompanhe o status de todas as suas solicitações de férias
+                Acompanhe o status de todas as suas solicitações de descanso remunerado
               </p>
             </div>
           </div>
@@ -145,7 +145,7 @@ export const Vacation = () => {
             <div className="relative max-w-md">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Buscar por período ou funcionário..."
+                placeholder="Buscar por período ou prestador..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-10 h-12 border-gray-200 focus:border-red-600 focus:ring-red-600"
@@ -164,8 +164,6 @@ export const Vacation = () => {
                     <TableHead className="font-semibold text-gray-700 py-4">Dias</TableHead>
                     <TableHead className="font-semibold text-gray-700 py-4">2º Período</TableHead>
                     <TableHead className="font-semibold text-gray-700 py-4">Dias</TableHead>
-                    <TableHead className="font-semibold text-gray-700 py-4">3º Período</TableHead>
-                    <TableHead className="font-semibold text-gray-700 py-4">Dias</TableHead>
                     <TableHead className="font-semibold text-gray-700 py-4">Total</TableHead>
                     <TableHead className="font-semibold text-gray-700 py-4">Status</TableHead>
                     <TableHead className="font-semibold text-gray-700 py-4">Solicitado em</TableHead>
@@ -175,7 +173,7 @@ export const Vacation = () => {
                 <TableBody>
                   {isLoadingSolicitacoes ? (
                     <TableRow>
-                      <TableCell colSpan={11} className="text-center py-12">
+                      <TableCell colSpan={9} className="text-center py-12">
                         <div className="flex items-center justify-center gap-3">
                           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-red-700"></div>
                           <span className="text-gray-600 font-medium">Carregando solicitações...</span>
@@ -184,14 +182,14 @@ export const Vacation = () => {
                     </TableRow>
                   ) : filteredRequests?.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={11} className="text-center py-12">
+                      <TableCell colSpan={9} className="text-center py-12">
                         <div className="flex flex-col items-center gap-3">
                           <div className="p-3 bg-gray-100 rounded-full">
                             <FileText className="h-6 w-6 text-gray-400" />
                           </div>
                           <div>
                             <h3 className="text-lg font-semibold text-gray-900 mb-1">Nenhuma solicitação encontrada</h3>
-                            <p className="text-gray-600">Comece criando sua primeira solicitação de férias.</p>
+                            <p className="text-gray-600">Comece criando sua primeira solicitação de descanso remunerado.</p>
                           </div>
                         </div>
                       </TableCell>
@@ -228,20 +226,6 @@ export const Vacation = () => {
                         <TableCell className="py-4">
                           <span className="font-medium text-gray-900">
                             {solicitacao.dias_corridos2 || 0}
-                          </span>
-                        </TableCell>
-                        <TableCell className="py-4">
-                          {solicitacao.data_inicio3 ? (
-                            <span className="text-gray-700">
-                              {format(new Date(solicitacao.data_inicio3), "dd/MM/yyyy", { locale: ptBR })}
-                            </span>
-                          ) : (
-                            <span className="text-gray-400">—</span>
-                          )}
-                        </TableCell>
-                        <TableCell className="py-4">
-                          <span className="font-medium text-gray-900">
-                            {solicitacao.dias_corridos3 || 0}
                           </span>
                         </TableCell>
                         <TableCell className="py-4">

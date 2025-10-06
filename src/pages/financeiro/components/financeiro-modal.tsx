@@ -31,7 +31,7 @@ export const FinanceiroModal = ({ isOpen, onClose, financeiroId }: FinanceiroMod
               <Input id="processo" placeholder="PROC-YYYY-XXX" />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="competencia">Competência *</Label>
+              <Label htmlFor="competencia">Inicio Vigência *</Label>
               <Input id="competencia" placeholder="Mês/Ano" />
             </div>
           </div>

@@ -30,9 +30,9 @@ export const DetalhesFeriasModal = ({ isOpen, onClose, solicitacao, onEdit }: De
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Detalhes da Solicitação de Férias</DialogTitle>
+          <DialogTitle>Detalhes da Solicitação de Descanso Remunerado</DialogTitle>
           <DialogDescription>
-            Informações detalhadas sobre a solicitação de férias.
+            Informações detalhadas sobre a solicitação de descanso remunerado.
           </DialogDescription>
         </DialogHeader>
 
@@ -49,7 +49,7 @@ export const DetalhesFeriasModal = ({ isOpen, onClose, solicitacao, onEdit }: De
             </div>
 
             <div className="space-y-4">
-              <h3 className="font-semibold">Período de Férias</h3>
+              <h3 className="font-semibold">Período de Descanso</h3>
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div>Data de Início:</div>
                 <div>{formatarData(solicitacao.periodos[0].data_inicio)}</div>
@@ -57,7 +57,7 @@ export const DetalhesFeriasModal = ({ isOpen, onClose, solicitacao, onEdit }: De
                 <div>{formatarData(solicitacao.periodos[0].data_termino)}</div>
                 <div>Total de Dias:</div>
                 <div>{solicitacao.dias} dias</div>
-                <div>Tipo de Férias:</div>
+                <div>Tipo de Descanso:</div>
                 <div>Regular</div>
               </div>
             </div>

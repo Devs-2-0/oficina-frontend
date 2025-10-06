@@ -93,7 +93,7 @@ export const NovaSolicitacaoModal = ({ isOpen, onClose, periodoElegivel }: NovaS
   }
 
   const adicionarPeriodo = () => {
-    if (periodos.length < 3) {
+    if (periodos.length < 2) {
       setPeriodos([...periodos, { data_inicio: '', dias_corridos: 0 }])
     }
   }
@@ -144,9 +144,9 @@ export const NovaSolicitacaoModal = ({ isOpen, onClose, periodoElegivel }: NovaS
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
         <DialogHeader className="flex-shrink-0">
-          <DialogTitle>Nova Solicitação de Férias</DialogTitle>
+          <DialogTitle>Nova Solicitação de Descanso Remunerado</DialogTitle>
           <DialogDescription>
-            Você possui {diasDisponiveis} dias disponíveis para solicitar férias.
+            Você possui {diasDisponiveis} dias disponíveis para solicitar descanso remunerado.
             Período aquisitivo: {format(new Date(periodoElegivel.inicioPeriodo), "dd/MM/yyyy", { locale: ptBR })} a {format(new Date(periodoElegivel.fimPeriodo), "dd/MM/yyyy", { locale: ptBR })}
           </DialogDescription>
         </DialogHeader>
@@ -155,8 +155,8 @@ export const NovaSolicitacaoModal = ({ isOpen, onClose, periodoElegivel }: NovaS
           <div className="grid gap-6 py-4">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <Label>Períodos de Férias</Label>
-                {periodos.length < 3 && (
+                <Label>Períodos de Descanso</Label>
+                {periodos.length < 2 && (
                   <Button type="button" variant="outline" size="sm" onClick={adicionarPeriodo}>
                     <Plus className="h-4 w-4 mr-2" />
                     Adicionar Período
@@ -238,7 +238,7 @@ export const NovaSolicitacaoModal = ({ isOpen, onClose, periodoElegivel }: NovaS
               <Label htmlFor="observacoes">Observações</Label>
               <Textarea
                 id="observacoes"
-                placeholder="Observações adicionais (opcional)"
+                placeholder="Observações adicionais sobre o descanso (opcional)"
                 value={observacoes}
                 onChange={(e) => setObservacoes(e.target.value)}
                 rows={3}

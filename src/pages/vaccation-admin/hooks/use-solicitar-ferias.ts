@@ -9,10 +9,10 @@ export function useSolicitarFerias() {
     mutationFn: solicitarFerias,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ferias'] })
-      toast.success('Solicitação de férias enviada com sucesso!')
+      toast.success('Solicitação de descanso remunerado enviada com sucesso!')
     },
     onError: () => {
-      toast.error('Erro ao enviar solicitação de férias. Tente novamente.')
+      toast.error('Erro ao enviar solicitação de descanso remunerado. Tente novamente.')
     }
   })
 } 
