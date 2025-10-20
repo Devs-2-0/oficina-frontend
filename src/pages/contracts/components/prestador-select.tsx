@@ -39,7 +39,7 @@ export function PrestadorSelect({
   const debouncedSearch = useDebounce(searchValue, 900)
 
   // Buscar prestadores com o termo de busca
-  const { data: prestadoresResponse, isLoading, error } = useGetPrestadores({
+  const { data: prestadoresResponse, isLoading } = useGetPrestadores({
     search: debouncedSearch.trim() || undefined
   })
 
@@ -47,24 +47,6 @@ export function PrestadorSelect({
   const prestadores = prestadoresResponse?.data || []
   const totalCount = prestadoresResponse?.count || 0
 
-  // Debug logs
-  console.log('=== DEBUG PRESTADOR SELECT ===')
-  console.log('searchValue:', searchValue)
-  console.log('debouncedSearch:', debouncedSearch)
-  console.log('prestadoresResponse:', prestadoresResponse)
-  console.log('prestadoresResponse type:', typeof prestadoresResponse)
-  console.log('prestadoresResponse.data:', prestadoresResponse?.data)
-  console.log('prestadoresResponse.data type:', typeof prestadoresResponse?.data)
-  console.log('prestadoresResponse.data isArray:', Array.isArray(prestadoresResponse?.data))
-  console.log('prestadoresResponse keys:', prestadoresResponse ? Object.keys(prestadoresResponse) : 'null')
-  console.log('prestadores (extraídos):', prestadores)
-  console.log('prestadores type:', typeof prestadores)
-  console.log('prestadores isArray:', Array.isArray(prestadores))
-  console.log('prestadores.length:', prestadores.length)
-  console.log('totalCount (extraído):', totalCount)
-  console.log('isLoading:', isLoading)
-  console.log('error:', error)
-  console.log('================================')
 
   const handleSearch = (search: string) => {
     setSearchValue(search)
@@ -101,7 +83,7 @@ export function PrestadorSelect({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-full p-0" align="start">
-        <Command>
+        <Command shouldFilter={false}>
           <div className="flex items-center border-b px-3">
             <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
             <CommandInput
@@ -113,18 +95,15 @@ export function PrestadorSelect({
           </div>
           <CommandList>
             <CommandGroup>
-              {/* Debug info */}
-              <div className="p-2 text-xs text-blue-600 border-b bg-blue-50">
-                Debug: {prestadores.length} prestadores extraídos, count: {totalCount}, loading: {isLoading ? 'sim' : 'não'}
-                <br />
-                Tipo: {typeof prestadores}, isArray: {Array.isArray(prestadores) ? 'sim' : 'não'}
-              </div>
                   {searchValue && (
                     <div className="p-2 text-xs text-muted-foreground border-b">
                       {totalCount} prestador{totalCount !== 1 ? 'es' : ''} encontrado{totalCount !== 1 ? 's' : ''}
                     </div>
                   )}
-                  {prestadores.map((prestador) => (
+                  {prestadores.length === 0 && !isLoading ? (
+                    <CommandEmpty>Nenhum prestador encontrado.</CommandEmpty>
+                  ) : (
+                    prestadores.map((prestador) => (
                     <CommandItem
                       key={prestador.id}
                       value={String(prestador.id)}
@@ -149,7 +128,8 @@ export function PrestadorSelect({
                         </span>
                       </div>
                     </CommandItem>
-                  ))}
+                    ))
+                  )}
 
             </CommandGroup>
           </CommandList>
