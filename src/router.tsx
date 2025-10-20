@@ -13,6 +13,7 @@ import { ForgotPassword } from './pages/ForgotPassword'
 import { Groups } from './pages/groups'
 import { Financeiro } from './pages/financeiro/Financeiro'
 import { VacationAdmin } from './pages/vaccation-admin/VacationAdmin'
+import { Departamentos } from './pages/departamentos'
 // import { ProtectedRoute } from './components/ProtectedRoute' // ajuste se necessário
 // import { ErrorBoundary } from './pages/_layouts/pages/error' // opcional
 
@@ -59,6 +60,10 @@ const protectedRoutes: RouteObject[] = [
   {
     path: '/solicitacoes-ferias',
     element: <VacationAdmin />,
+  },
+  {
+    path: '/departamentos',
+    element: <Departamentos />,
   }
 ]
 

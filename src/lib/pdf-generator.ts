@@ -23,7 +23,7 @@ export class FinanceiroPDFGenerator {
 
   constructor(options: PDFOptions = {}) {
     this.options = {
-      title: 'Relatório Financeiro',
+      title: 'Demonstrativo de pagamento',
       includeHeader: true,
       includeFooter: true,
       orientation: 'portrait',
@@ -282,7 +282,7 @@ export class FinanceiroPDFGenerator {
       this.addHeader()
       
       // Add title
-      this.addTitle(this.options.title || 'Relatório Financeiro')
+      this.addTitle(this.options.title || 'Demonstrativo de pagamento')
       
       // Add financeiro information
       let currentY = this.addFinanceiroInfo(financeiro)

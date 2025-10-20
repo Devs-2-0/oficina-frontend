@@ -2,10 +2,10 @@ import { z } from "zod";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
-import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { getUserById } from "@/http/services/users/get-user-by-id";
 import { useGetGrupos } from '../hooks/use-get-grupos';
+import { useGetDepartamentos } from '../../departamentos/hooks/use-get-departamentos';
 
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -26,8 +26,9 @@ const createUserSchema = z.object({
   bairro: z.string().min(1, "Bairro é obrigatório"),
   cidade: z.string().min(1, "Cidade é obrigatória"),
   uf: z.string().min(1, "UF é obrigatória"),
-  grupo: z.string().min(1, "Grupo é obrigatório"),
+  grupo: z.string().min(1, "Grupo é obrigatório").refine(val => val !== "", "Selecione um grupo"),
   email: z.string().email("Email inválido"),
+  departamento: z.string().optional(),
 });
 
 const editUserSchema = z.object({
@@ -37,11 +38,12 @@ const editUserSchema = z.object({
   nome_usuario: z.string().min(1, "Nome de usuário é obrigatório"),
   senha: z.string().optional(),
   endereco: z.string().min(1, "Endereço é obrigatório"),
-  bairro: z.string().min(1, "Bairro é obrigatório"),
+  bairro: z.string().optional(),
   cidade: z.string().min(1, "Cidade é obrigatória"),
   uf: z.string().min(1, "UF é obrigatória"),
-  grupo: z.string().min(1, "Grupo é obrigatório"),
+  grupo: z.string().min(1, "Grupo é obrigatório").refine(val => val !== "", "Selecione um grupo"),
   email: z.string().email("Email inválido"),
+  departamento: z.string().optional(),
 });
 
 type CreateUserFormData = z.infer<typeof createUserSchema>;
@@ -59,6 +61,7 @@ export const UserModal = ({ isOpen, onClose, userId }: UserModalProps) => {
   const postUser = usePostUserMutation();
   const updateUser = useUpdateUserMutation();
   const { data: grupos = [] } = useGetGrupos();
+  const { data: departamentos = [] } = useGetDepartamentos();
 
   const { data: userData, isLoading: isLoadingUser } = useQuery({
     queryKey: ['user', userId],
@@ -86,8 +89,9 @@ export const UserModal = ({ isOpen, onClose, userId }: UserModalProps) => {
       bairro: "",
       cidade: "",
       uf: "",
-      grupo: "7",
+      grupo: "",
       email: "",
+      departamento: "none",
     },
   });
 
@@ -98,7 +102,8 @@ export const UserModal = ({ isOpen, onClose, userId }: UserModalProps) => {
       reset({
         ...userData,
         senha: "", // Por segurança, não preenchemos o campo de senha
-        grupo: '7'
+        grupo: userData.grupo?.id?.toString() || "", // Tratar caso onde grupo é null
+        departamento: userData.departamento?.codigo || "none"
       });
     } else if (!isEditMode) {
       reset({
@@ -111,16 +116,22 @@ export const UserModal = ({ isOpen, onClose, userId }: UserModalProps) => {
         bairro: "",
         cidade: "",
         uf: "",
-        grupo: "7",
+        grupo: "",
         email: "",
+        departamento: "none",
       });
     }
   }, [userData, reset, isEditMode]);
 
   const handleSaveUser = async (data: UserFormData) => {
+    // Validar se grupo foi selecionado
+    if (!data.grupo) {
+      return; // O formulário não será submetido devido à validação do schema
+    }
+
     if (isEditMode && userId && userData) {
       if (isPrestador) {
-        // Para usuários Prestador, enviar todos os dados atuais + novo grupo
+        // Para usuários Prestador, enviar todos os dados atuais + novo grupo + departamento
         await updateUser.mutateAsync({ 
           id: userId,
           matricula: userData.matricula,
@@ -128,11 +139,12 @@ export const UserModal = ({ isOpen, onClose, userId }: UserModalProps) => {
           identificacao: userData.identificacao,
           nome_usuario: userData.nome_usuario,
           endereco: userData.endereco,
-          bairro: userData.bairro,
+          bairro: data.bairro || "-", // Enviar "-" se bairro estiver vazio
           cidade: userData.cidade,
           uf: userData.uf,
           email: userData.email,
-          grupo: Number(data.grupo) // Apenas o grupo é atualizado
+          grupo: Number(data.grupo), // Apenas o grupo é atualizado
+          departamento: data.departamento === "none" ? undefined : data.departamento || undefined // Departamento pode ser alterado
         });
         // Toast será exibido pelo hook
       } else {
@@ -143,7 +155,9 @@ export const UserModal = ({ isOpen, onClose, userId }: UserModalProps) => {
         await updateUser.mutateAsync({ 
           id: userId, 
           ...payload, 
-          grupo: Number(data.grupo) 
+          grupo: Number(data.grupo),
+          departamento: data.departamento === "none" ? undefined : data.departamento || undefined,
+          bairro: data.bairro || "-" // Enviar "-" se bairro estiver vazio
         });
         // Toast será exibido pelo hook
       }
@@ -154,7 +168,10 @@ export const UserModal = ({ isOpen, onClose, userId }: UserModalProps) => {
       
       await postUser.mutateAsync({
         ...payload,
-        grupo: Number(data.grupo)
+        grupo: Number(data.grupo),
+        departamento: data.departamento === "none" ? undefined : data.departamento || undefined,
+        senha: data.senha || "", // Garantir que a senha seja uma string
+        bairro: data.bairro || "-" // Enviar "-" se bairro estiver vazio
       });
       // Toast será exibido pelo hook
     }
@@ -174,15 +191,15 @@ export const UserModal = ({ isOpen, onClose, userId }: UserModalProps) => {
           <DialogDescription>
             {isEditMode
               ? isPrestador 
-                ? "Usuário do tipo Prestador - apenas o grupo pode ser alterado."
-                : "Edite as informações do usuário abaixo."
-              : "Preencha as informações para criar um novo usuário."}
+                ? "Usuário do tipo Prestador - apenas o grupo e departamento podem ser alterados. Grupo é obrigatório."
+                : "Edite as informações do usuário abaixo. Grupo é obrigatório."
+              : "Preencha as informações para criar um novo usuário. Grupo é obrigatório."}
           </DialogDescription>
           {isEditMode && isPrestador && (
             <div className="bg-amber-50 border border-amber-200 rounded-md p-3 mt-2">
               <p className="text-sm text-amber-800">
-                <strong>Usuário do tipo Prestador:</strong> Por questões de segurança, apenas o campo "Grupo" pode ser alterado. 
-                Todos os outros campos estão bloqueados para edição.
+                <strong>Usuário do tipo Prestador:</strong> Por questões de segurança, apenas os campos "Grupo" e "Departamento" podem ser alterados. 
+                Todos os outros campos estão bloqueados para edição. <strong>Grupo é obrigatório.</strong>
               </p>
             </div>
           )}
@@ -295,7 +312,7 @@ export const UserModal = ({ isOpen, onClose, userId }: UserModalProps) => {
                     name="bairro"
                     control={control}
                     render={({ field }) => (
-                      <Input {...field} placeholder="Bairro" disabled={isEditMode && isPrestador} />
+                      <Input {...field} placeholder={isEditMode ? "Bairro (opcional)" : "Bairro"} disabled={isEditMode && isPrestador} />
                     )}
                   />
                   {errors.bairro && <p className="text-sm text-red-500">{errors.bairro.message}</p>}
@@ -351,6 +368,34 @@ export const UserModal = ({ isOpen, onClose, userId }: UserModalProps) => {
                   />
                   {errors.grupo && <p className="text-sm text-red-500">{errors.grupo.message}</p>}
                 </div>
+              </div>
+
+              {/* Campo de Departamento - disponível para todos os usuários */}
+              <div className="space-y-2">
+                <Label htmlFor="departamento">Departamento</Label>
+                <Controller
+                  name="departamento"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      value={field.value}
+                      onValueChange={field.onChange}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione um departamento" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Sem departamento</SelectItem>
+                        {departamentos.map((departamento) => (
+                          <SelectItem key={departamento.codigo} value={departamento.codigo}>
+                            {departamento.codigo} - {departamento.descricao}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                {errors.departamento && <p className="text-sm text-red-500">{errors.departamento.message}</p>}
               </div>
             </div>
             <DialogFooter>

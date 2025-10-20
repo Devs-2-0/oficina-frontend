@@ -22,5 +22,9 @@ export interface User {
   data_ultima_atualizacao: string;
   data_exclusao: string | null;
   grupo: UserGroup;
+  departamento?: {
+    codigo: string;
+    descricao: string;
+  };
 }
 

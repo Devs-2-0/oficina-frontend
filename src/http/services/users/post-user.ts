@@ -13,6 +13,7 @@ export interface PostUserRequest {
   uf: string;
   grupo: number;
   email: string;
+  departamento?: string; // código do departamento
 }
 
 

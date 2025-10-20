@@ -38,7 +38,7 @@ This document summarizes the implementation of a comprehensive permission system
   - Contratos: `visualizar_seu_contrato` OR `visualizar_todos_contratos`
   - Financeiro: `visualizar_seu_financeiro` OR `visualizar_todos_financeiros`
   - Férias: `buscar_solicitacao` OR `buscar_periodo_matricula`
-  - Solicitações de férias: `buscar_todas_solicitacoes`
+  - Solicitação de Descanso Remunerado: `buscar_todas_solicitacoes`
   - Usuários: `visualizar_usuario`
   - Grupos: `visualizar_grupo`
 

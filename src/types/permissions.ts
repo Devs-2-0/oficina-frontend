@@ -44,8 +44,14 @@ export enum PermissoesEnum {
   "buscar_solicitacao_matricula" = "buscar_solicitacao_matricula",
   "buscar_solicitacao" = "buscar_solicitacao",
   "buscar_todas_solicitacoes" = "buscar_todas_solicitacoes",
+  "buscar_todas_solicitacoes_departamento" = "buscar_todas_solicitacoes_departamento",
   "decidir_solicitacao" = "decidir_solicitacao",
   "excluir_solicitacao" = "excluir_solicitacao",
+
+  // Departamentos
+  "criar_departamento" = "criar_departamento",
+  "excluir_departamento" = "excluir_departamento",
+  "visualizar_departamento" = "visualizar_departamento",
 
   // Permissões
   "visualizar_permissoes" = "visualizar_permissoes",

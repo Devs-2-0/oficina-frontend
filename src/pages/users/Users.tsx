@@ -272,6 +272,9 @@ export const Users = () => {
                         <span className="ml-1">{sortField === "grupo" && (sortDirection === "asc" ? "↑" : "↓")}</span>
                       </div>
                     </TableHead>
+                    <TableHead className="hidden xl:table-cell font-semibold text-gray-700 py-4">
+                      Departamento
+                    </TableHead>
                     <TableHead
                       className="cursor-pointer hidden lg:table-cell font-semibold text-gray-700 py-4"
                       onClick={() => handleSort("data_ultima_atualizacao")}
@@ -289,7 +292,7 @@ export const Users = () => {
                 <TableBody>
                   {paginatedUsers.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={9} className="text-center py-12">
+                      <TableCell colSpan={10} className="text-center py-12">
                         <div className="flex flex-col items-center gap-3">
                           <div className="p-3 bg-gray-100 rounded-full">
                             <UserPlus className="h-6 w-6 text-gray-400" />
@@ -314,6 +317,13 @@ export const Users = () => {
                         <TableCell className="py-4">{getTipoBadge(user?.tipo)}</TableCell>
                         <TableCell className="py-4">{getStatusBadge(user?.status)}</TableCell>
                         <TableCell className="hidden lg:table-cell py-4 text-gray-700">{typeof user?.grupo === 'object' ? user?.grupo?.nome : user?.grupo}</TableCell>
+                        <TableCell className="hidden xl:table-cell py-4 text-gray-700">
+                          {user?.departamento ? (
+                            <span className="text-sm">{user.departamento.codigo} - {user.departamento.descricao}</span>
+                          ) : (
+                            <span className="text-gray-400 text-sm">-</span>
+                          )}
+                        </TableCell>
                         <TableCell className="hidden lg:table-cell py-4 text-gray-700">{formatDate(user?.data_ultima_atualizacao)}</TableCell>
                         <TableCell className="text-right py-4">
                           <DropdownMenu>

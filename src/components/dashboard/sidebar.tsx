@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react"
 import { Link, useLocation } from "react-router-dom"
 import {
-  BarChart,
+  Building2,
   Calendar,
   CalendarDays,
   ChevronLeft,
@@ -11,7 +11,6 @@ import {
   Home,
   LogOut,
   Menu,
-  Settings,
   Users,
   Wallet,
   X,
@@ -25,14 +24,12 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
 import { useNaoVisualizadas } from "@/pages/feed/hooks/use-nao-visualizadas"
 import { useAuth } from "@/contexts/auth-context"
-import { usePermissions } from "@/hooks/use-permissions"
 import { PermissionGuard } from "@/components/ui/permission-guard"
 
 interface NavItem {
@@ -84,10 +81,10 @@ export function DashboardSidebar() {
       permissions: ["buscar_solicitacao", "buscar_periodo_matricula"]
     },
     { 
-      title: "Solicitações de férias", 
+      title: "Solicitações de Descanso Remunerado", 
       href: "/solicitacoes-ferias", 
       icon: CalendarDays,
-      permission: "buscar_todas_solicitacoes"
+      permissions: ["buscar_todas_solicitacoes", "buscar_todas_solicitacoes_departamento"]
     },
     { 
       title: "Usuários", 
@@ -101,6 +98,12 @@ export function DashboardSidebar() {
       href: "/grupos", 
       icon: Group,
       permission: "visualizar_grupo"
+    },
+    { 
+      title: "Departamentos", 
+      href: "/departamentos", 
+      icon: Building2,
+      permission: "visualizar_departamento"
     },
   ]
 

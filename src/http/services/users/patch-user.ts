@@ -14,6 +14,7 @@ export interface UpdateUserRequest {
   uf: string;
   grupo: number;
   email: string;
+  departamento?: string; // código do departamento
 }
 
 export async function patchUser(data: UpdateUserRequest): Promise<void> {
